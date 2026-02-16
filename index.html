@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENTprep - Подготовка к ЕНТ</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        #root {
+            width: 100%;
+            min-height: 100vh;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 24px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading">Загрузка ENTprep...</div>
+    </div>
+
+    <script type="text/babel" data-type="module">
+        // Загружаем все файлы вопросов напрямую
+        const loadScript = (src) => {
+            return fetch(src)
+                .then(response => response.text())
+                .then(code => {
+                    // Убираем export из кода
+                    code = code.replace(/export\s*\{\s*\w+\s*\};?/g, '');
+                    return eval(code);
+                });
+        };
+
+        // Загружаем все банки вопросов
+        Promise.all([
+            fetch('./math_profile_questions.js').then(r => r.text()),
+            fetch('./physics_questions.js').then(r => r.text()),
+            fetch('./biology_questions.js').then(r => r.text()),
+            fetch('./chemistry_questions.js').then(r => r.text()),
+            fetch('./world_history_questions.js').then(r => r.text()),
+            fetch('./informatics_questions.js').then(r => r.text()),
+            fetch('./entprep-v5.jsx').then(r => r.text())
+        ]).then(([mpqCode, physCode, bioCode, chemCode, whCode, infoCode, appCode]) => {
+            // Выполняем код банков вопросов (убираем export)
+            eval(mpqCode.replace(/export\s*\{\s*\w+\s*\};?/g, ''));
+            eval(physCode.replace(/export\s*\{\s*\w+\s*\};?/g, ''));
+            eval(bioCode.replace(/export\s*\{\s*\w+\s*\};?/g, ''));
+            eval(chemCode.replace(/export\s*\{\s*\w+\s*\};?/g, ''));
+            eval(whCode.replace(/export\s*\{\s*\w+\s*\};?/g, ''));
+            eval(infoCode.replace(/export\s*\{\s*\w+\s*\};?/g, ''));
+
+            // Убираем импорты из основного кода и выполняем
+            appCode = appCode.replace(/import\s+.*?from\s+['"].*?['"];?\s*/g, '');
+
+            // Создаем функцию из кода приложения
+            const script = document.createElement('script');
+            script.type = 'text/babel';
+            script.text = appCode + '\n\nconst root = ReactDOM.createRoot(document.getElementById("root")); root.render(<App />);';
+            document.body.appendChild(script);
+        }).catch(error => {
+            console.error('Ошибка загрузки:', error);
+            document.getElementById('root').innerHTML = '<div class="loading" style="color: red;">Ошибка загрузки: ' + error.message + '</div>';
+        });
+    </script>
+</body>
+</html>
