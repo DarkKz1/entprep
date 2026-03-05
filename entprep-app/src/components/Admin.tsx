@@ -44,6 +44,9 @@ interface GeneratedQuestion {
   o: string[];
   c: number;
   e: string;
+  q_kk?: string;
+  o_kk?: string[];
+  e_kk?: string;
 }
 
 interface ReportedQuestion {
@@ -184,6 +187,7 @@ export default function Admin() {
         : null;
       await adminAction('insert_question', {
         subject, topic: topicName, q: generated.q, o: generated.o, c: generated.c, e: generated.e,
+        ...(generated.q_kk && { q_kk: generated.q_kk, o_kk: generated.o_kk, e_kk: generated.e_kk }),
       });
       setAccepted(a => a + 1);
       setGenerated(null);
@@ -428,6 +432,13 @@ export default function Admin() {
                 <div style={{ fontSize: 11, color: "#1A9A8C", fontWeight: 600, marginBottom: 4 }}>Объяснение</div>
                 <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{generated.e}</div>
               </div>
+              {generated.q_kk && (
+                <div style={{ ...CARD_COMPACT, background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.12)", padding: "11px 13px", marginTop: 8 }}>
+                  <div style={{ fontSize: 11, color: "#6366f1", fontWeight: 600, marginBottom: 4 }}>Қазақша</div>
+                  <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>{generated.q_kk}</div>
+                  {generated.o_kk && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{generated.o_kk.map((o: string, i: number) => `${["А","Б","В","Г"][i]}) ${o}`).join(" • ")}</div>}
+                </div>
+              )}
             </div>
             <div style={{ display: "flex", gap: 7, padding: "0 16px 16px" }}>
               <button onClick={handleAccept} disabled={saving} style={{ flex: 1, padding: "12px", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", borderRadius: 10, color: "#10B981", fontSize: 12, fontWeight: 700, cursor: saving ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>

@@ -143,7 +143,9 @@ export default async function handler(req) {
           }
         }
 
-        await sbInsert("questions", { subject, topic, q, o, c, e });
+        const row = { subject, topic, q, o, c, e };
+        if (body.q_kk) { row.q_kk = body.q_kk; row.o_kk = body.o_kk; row.e_kk = body.e_kk; }
+        await sbInsert("questions", row);
         return Response.json({ ok: true }, { headers: CORS_HEADERS });
       }
 

@@ -153,6 +153,34 @@ ${QUALITY_RULES}
       }
     }
 
+    // Auto-translate to Kazakh
+    try {
+      const trRes = await fetch(ANTHROPIC_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({
+          model: AI_MODEL,
+          max_tokens: 800,
+          temperature: 0.3,
+          system: `Ты профессиональный переводчик учебных материалов с русского на казахский. Переводи точно и полностью. Числа, формулы, Unicode символы (², √, π) — без изменений. Количество вариантов ответа ТОЧНО совпадает с оригиналом. Верни строго JSON (без markdown): {"q_kk":"...","o_kk":["...","...","...","..."],"e_kk":"..."}`,
+          messages: [{ role: "user", content: `Переведи на казахский:\nВопрос: ${parsed.q}\nВарианты: ${parsed.o.map((o, i) => `${["А","Б","В","Г"][i]}) ${o}`).join("; ")}\nОбъяснение: ${parsed.e}` }],
+        }),
+      });
+      if (trRes.ok) {
+        const trData = await trRes.json();
+        let trRaw = trData.content?.[0]?.text?.trim() || "";
+        trRaw = trRaw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+        const tr = JSON.parse(trRaw);
+        if (tr.q_kk && Array.isArray(tr.o_kk) && tr.o_kk.length === 4 && tr.e_kk) {
+          parsed.q_kk = tr.q_kk;
+          parsed.o_kk = tr.o_kk;
+          parsed.e_kk = tr.e_kk;
+        }
+      }
+    } catch (trErr) {
+      console.log("Auto-translate failed (non-critical):", trErr.message);
+    }
+
     return Response.json(parsed, { headers: CORS_HEADERS });
   } catch (err) {
     console.error("Claude error:", err.message);
