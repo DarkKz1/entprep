@@ -67,7 +67,7 @@ export const QUALITY_RULES = `
 - Объяснение должно быть ОБРАЗОВАТЕЛЬНЫМ (1-3 предложения), а НЕ просто "Правильный ответ: X"`;
 
 // ── AI model ────────────────────────────────────────────────────────────────
-export const AI_MODEL = "claude-sonnet-4-20250514";
+export const AI_MODEL = "claude-sonnet-4-6-20250217";
 
 // ── Dedup threshold ─────────────────────────────────────────────────────────
 export const JACCARD_THRESHOLD = 0.70;

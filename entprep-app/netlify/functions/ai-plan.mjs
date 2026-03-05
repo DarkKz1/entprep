@@ -1,4 +1,5 @@
 import { corsResponse, CORS_HEADERS, verifyAuth, createRateLimiter, rateLimitResponse, validatePlan } from "./utils/shared.mjs";
+import { AI_MODEL } from "./utils/constants.mjs";
 
 const checkRate = createRateLimiter("plan", { max: 5, windowSec: 60 });
 
@@ -117,7 +118,7 @@ ${weakText || "нет данных"}
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: AI_MODEL,
         max_tokens: 1200,
         temperature: 0.7,
         system: systemPrompt,

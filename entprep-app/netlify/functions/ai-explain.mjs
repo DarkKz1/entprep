@@ -1,4 +1,5 @@
 import { corsResponse, CORS_HEADERS, verifyAuth, createRateLimiter, rateLimitResponse, validateExplain } from "./utils/shared.mjs";
+import { AI_MODEL } from "./utils/constants.mjs";
 
 const checkRate = createRateLimiter("explain", { max: 30, windowSec: 60 });
 
@@ -72,7 +73,7 @@ export default async function handler(req) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: AI_MODEL,
         max_tokens: 500,
         temperature: 0.7,
         system: systemPrompt,

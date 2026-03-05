@@ -126,32 +126,39 @@ async function broadcast(prefColumn, payload, { skipActiveToday = false } = {}) 
 
 // ── Notification payloads ────────────────────────────────────────────────
 
-const STREAK_PAYLOAD = {
-  title: "Не потеряй серию!",
-  body: "Ты ещё не занимался сегодня. Пройди хотя бы один тест!",
-  icon: "/icon-192.png",
-  badge: "/icon-96.png",
-  tag: "streak-reminder",
-  url: "/",
-};
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
-const ERRORS_PAYLOAD = {
-  title: "Повтори ошибки",
-  body: "Закрепи материал — повтори вопросы, где ошибся сегодня.",
-  icon: "/icon-192.png",
-  badge: "/icon-96.png",
-  tag: "error-review",
-  url: "/?screen=errors",
-};
+function streakPayload() {
+  const variants = [
+    { title: "Серия на кону", body: "Сегодня ещё ни одного теста. Давай хотя бы 5 минут?" },
+    { title: "Эй, не пропадай", body: "Один тест — и серия сохранена. Ты же не хочешь начинать заново?" },
+    { title: "Серия ждёт тебя", body: "Осталось немного до конца дня. Зайди и реши пару вопросов." },
+    { title: "Не сегодня, да?", body: "Ладно, но серия обнулится. Может всё-таки один тест?" },
+    { title: "Ты сегодня не заходил", body: "Даже 5 вопросов — уже прогресс. Серия пока жива." },
+  ];
+  return { ...pick(variants), icon: "/icon-192.png", badge: "/icon-96.png", tag: "streak-reminder", url: "/" };
+}
 
-const WEEKLY_PAYLOAD = {
-  title: "Твой еженедельный отчёт",
-  body: "Посмотри свой прогресс за неделю и поставь новые цели!",
-  icon: "/icon-192.png",
-  badge: "/icon-96.png",
-  tag: "weekly-report",
-  url: "/?screen=prog",
-};
+function errorsPayload() {
+  const variants = [
+    { title: "Ошибки не кусаются", body: "Повтори те вопросы, где промахнулся. Второй раз будет проще." },
+    { title: "Давай разберём ошибки", body: "Пока помнишь материал — пройдись по ошибкам ещё раз." },
+    { title: "Работа над ошибками", body: "Лучший способ запомнить — повторить то, что не получилось." },
+    { title: "Помнишь те ошибки?", body: "Они всё ещё ждут. Повтори сейчас, пока свежо в голове." },
+  ];
+  return { ...pick(variants), icon: "/icon-192.png", badge: "/icon-96.png", tag: "error-review", url: "/?screen=errors" };
+}
+
+function weeklyPayload() {
+  const variants = [
+    { title: "Итоги недели", body: "Посмотри, сколько ты прошёл за эту неделю." },
+    { title: "Неделя позади", body: "Зайди глянуть свою статистику — есть чем гордиться?" },
+    { title: "Как прошла неделя?", body: "Твоя статистика обновилась. Зайди, посмотри прогресс." },
+  ];
+  return { ...pick(variants), icon: "/icon-192.png", badge: "/icon-96.png", tag: "weekly-report", url: "/?screen=prog" };
+}
 
 // ── Main handler ─────────────────────────────────────────────────────────
 
@@ -168,17 +175,17 @@ export default async function handler() {
 
   // 20:00 KZ — streak reminder (skip users who already studied today)
   if (hour === 20) {
-    tasks.push(broadcast("pref_streak", STREAK_PAYLOAD, { skipActiveToday: true }));
+    tasks.push(broadcast("pref_streak", streakPayload(), { skipActiveToday: true }));
   }
 
   // 21:00 KZ — error review reminder
   if (hour === 21) {
-    tasks.push(broadcast("pref_errors", ERRORS_PAYLOAD));
+    tasks.push(broadcast("pref_errors", errorsPayload()));
   }
 
   // Sunday 10:00 KZ — weekly report
   if (hour === 10 && isKZSunday()) {
-    tasks.push(broadcast("pref_weekly", WEEKLY_PAYLOAD));
+    tasks.push(broadcast("pref_weekly", weeklyPayload()));
   }
 
   if (tasks.length) {
