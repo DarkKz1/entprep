@@ -149,6 +149,7 @@ export default function Test({ sid, tid, customQs = null, finish }: TestProps) {
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ question: qItem.q, options: qItem.o, userAnswer: ans[index], correctAnswer: qItem.c, explanation: qItem.e, questionType: getQType(qItem), pairs: qItem.pairs, lang: st.lang })
       });
+      if (res.status === 403) { openPaywall('ai'); setAiLoad(p => ({ ...p, [index]: false })); return; }
       const data = await res.json();
       if (data.short) setAiText(p => ({ ...p, [index]: { short: data.short, detailed: data.detailed || data.short } }));
       else if (data.explanation) setAiText(p => ({ ...p, [index]: { short: data.explanation, detailed: data.explanation } }));
