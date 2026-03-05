@@ -69,11 +69,11 @@ export const QUALITY_RULES = `
 
 // ── AI models ───────────────────────────────────────────────────────────────
 // Default model for all generation (runtime + batch)
-export const AI_MODEL = 'claude-sonnet-4-6-20250217';
+export const AI_MODEL = 'claude-sonnet-4-20250514';
 
 // Model aliases for --model CLI flag in ingest-questions.mjs
 export const MODEL_ALIASES = {
-  sonnet: 'claude-sonnet-4-6-20250217',
+  sonnet: 'claude-sonnet-4-20250514',
   haiku: 'claude-haiku-4-5-20251001',
   opus: 'claude-opus-4-20250514',
 };

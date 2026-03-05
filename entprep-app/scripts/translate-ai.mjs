@@ -150,6 +150,10 @@ async function callClaude(batch) {
     return null;
   }
 
+  // Estimate needed tokens: ~1.5x input length for translation output
+  const inputChars = userMessage.length;
+  const estimatedTokens = Math.max(4096, Math.min(16000, Math.ceil(inputChars / 2)));
+
   const res = await fetch(ANTHROPIC_API_URL, {
     method: 'POST',
     headers: {
@@ -159,7 +163,7 @@ async function callClaude(batch) {
     },
     body: JSON.stringify({
       model,
-      max_tokens: 4096,
+      max_tokens: estimatedTokens,
       temperature: 0.3,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }],

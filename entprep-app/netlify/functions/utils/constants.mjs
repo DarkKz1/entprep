@@ -67,7 +67,7 @@ export const QUALITY_RULES = `
 - Объяснение должно быть ОБРАЗОВАТЕЛЬНЫМ (1-3 предложения), а НЕ просто "Правильный ответ: X"`;
 
 // ── AI model ────────────────────────────────────────────────────────────────
-export const AI_MODEL = "claude-sonnet-4-6-20250217";
+export const AI_MODEL = "claude-sonnet-4-20250514";
 
 // ── Anthropic API endpoint ──────────────────────────────────────────────────
 export const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
