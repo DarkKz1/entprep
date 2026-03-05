@@ -107,8 +107,8 @@ export default function Adaptive() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ weak: weakWithTopics, strong: strongData, overall, totalTests, streak, lang: st.lang }),
       });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); setPlanError((err as Record<string, string>).error || t.adaptive.planError); toast.error(t.adaptive.planError, { action: generatePlan, actionLabel: 'Повторить' }); setPlanLoading(false); return; }
       const json = await res.json();
-      if (!res.ok) { setPlanError(json.error || t.adaptive.planError); toast.error(t.adaptive.planError, { action: generatePlan, actionLabel: 'Повторить' }); setPlanLoading(false); return; }
       usePlanLimit(); // consume limit only on success
       setPlan(json);
       setPlanDate(new Date().toISOString());

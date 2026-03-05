@@ -116,14 +116,18 @@ async function deleteSubscription(endpoint: string): Promise<void> {
   }
 }
 
-/** Sync per-type preferences to server (fire-and-forget) */
-export function syncPushPrefs(prefs: { streak?: boolean; errors?: boolean; weekly?: boolean }): void {
-  getAuthHeaders().then((headers) => {
-    if (!headers) return;
-    fetch('/api/push-subscribe', {
+/** Sync per-type preferences to server. Returns false on failure. */
+export async function syncPushPrefs(prefs: { streak?: boolean; errors?: boolean; weekly?: boolean }): Promise<boolean> {
+  const headers = await getAuthHeaders();
+  if (!headers) return false;
+  try {
+    const res = await fetch('/api/push-subscribe', {
       method: 'POST',
       headers,
       body: JSON.stringify({ action: 'update_prefs', prefs }),
-    }).catch(() => { /* silent */ });
-  });
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }

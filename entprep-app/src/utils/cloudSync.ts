@@ -36,7 +36,7 @@ export async function cloudSave(userId: string, { hist, prof, st }: CloudData): 
     const { current: streak } = calcStreak(hist);
     const avatarUrl = supabase ? (await supabase.auth.getUser()).data.user?.user_metadata?.avatar_url : undefined;
     syncProfileStats(userId, totalXP, level, streak, avatarUrl);
-  } catch { /* non-critical */ }
+  } catch (e) { console.warn('cloudSave: profile stats sync failed', e); }
 
   return { ok: true };
 }

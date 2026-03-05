@@ -1,6 +1,7 @@
 // Client-side helpers for 1v1 duels: API calls, Realtime subscriptions, invite URLs
 
 import { supabase } from '../config/supabase';
+import { APP_URL } from '../config/app';
 import type { DuelQuestion, DuelState, Profile } from '../types/index';
 
 // ── API call helper ──────────────────────────────────────────────────────────
@@ -110,7 +111,7 @@ export function subscribeToDuel(duelId: number, callback: DuelRealtimeCallback):
 // ── Invite URL ───────────────────────────────────────────────────────────────
 
 export function buildDuelInviteUrl(code: string): string {
-  return `https://entprep.netlify.app?duel=${code}`;
+  return `${APP_URL}?duel=${code}`;
 }
 
 export function parseDuelInviteParam(): string | null {

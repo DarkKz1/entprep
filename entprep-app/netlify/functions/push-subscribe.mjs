@@ -1,18 +1,26 @@
-import { CORS_HEADERS, corsResponse, verifyAuth } from "./utils/shared.mjs";
+import { CORS_HEADERS, corsResponse, verifyAuth, createRateLimiter, rateLimitResponse } from "./utils/shared.mjs";
 
 const SB_URL = process.env.VITE_SUPABASE_URL;
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+const checkRate = createRateLimiter("push-subscribe", { max: 20, windowSec: 60 });
 
 export default async function handler(req) {
   if (req.method === "OPTIONS") return corsResponse();
   if (req.method !== "POST")
     return Response.json({ error: "Method not allowed" }, { status: 405, headers: CORS_HEADERS });
 
+  const rl = checkRate(req);
+  if (rl) return rateLimitResponse(rl);
+
   const user = await verifyAuth(req);
   if (!user)
     return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS_HEADERS });
 
-  const body = await req.json();
+  let body;
+  try { body = await req.json(); } catch {
+    return Response.json({ error: "Invalid JSON" }, { status: 400, headers: CORS_HEADERS });
+  }
   const { action } = body;
 
   if (action === "subscribe") {

@@ -11,10 +11,14 @@ function loadData(): UserData | null {
   }
 }
 
-function saveData(d: UserData): void {
+function saveData(d: UserData): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-  } catch {}
+    return true;
+  } catch (e) {
+    console.warn('saveData: localStorage write failed (quota?)', e);
+    return false;
+  }
 }
 
 export { loadData, saveData };

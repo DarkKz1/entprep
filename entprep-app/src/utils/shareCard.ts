@@ -8,7 +8,7 @@ const BG = "#0C0C14";
 const GRAD_L = "#FF6B35";
 const GRAD_R = "#1A9A8C";
 const QR_SIZE = 180;
-const APP_URL = "https://entprep.netlify.app";
+import { APP_URL } from '../config/app';
 
 // ── Param interfaces ─────────────────────────────────────────────
 

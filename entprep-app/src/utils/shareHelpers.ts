@@ -1,4 +1,5 @@
-const BASE_URL = 'https://entprep.netlify.app';
+import { APP_URL } from '../config/app';
+const BASE_URL = APP_URL;
 
 async function shareWithImage(blob: Blob | null, text: string): Promise<boolean> {
   if (navigator.canShare && blob) {

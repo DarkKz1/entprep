@@ -11,7 +11,7 @@ const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
 
 if (VAPID_PUBLIC && VAPID_PRIVATE) {
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "mailto:dzakpelov@gmail.com",
+    process.env.VAPID_SUBJECT,
     VAPID_PUBLIC,
     VAPID_PRIVATE
   );

@@ -260,10 +260,11 @@ export default function Settings() {
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{item.l}</div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{item.d}</div>
               </div>
-              <Toggle value={st[item.k] !== false} onChange={(v) => {
+              <Toggle value={st[item.k] !== false} onChange={async (v) => {
                 updSt({ ...st, [item.k]: v });
                 const prefKey = item.k.replace('push', '').toLowerCase();
-                syncPushPrefs({ [prefKey]: v });
+                const ok = await syncPushPrefs({ [prefKey]: v });
+                if (!ok) toast.warning(t.push?.syncFailed || 'Настройка не сохранилась на сервере');
               }} label={item.l} />
             </div>
           ))}

@@ -4,7 +4,7 @@
 
 import { corsResponse, CORS_HEADERS, verifyAuth, createRateLimiter, rateLimitResponse, validateGenerate } from "./utils/shared.mjs";
 import { checkGenerated, tokenize, jaccard } from "./utils/quality.mjs";
-import { SUBJECT_NAMES, getTemperature, getSTEMPrefix, JACCARD_THRESHOLD, QUALITY_RULES, AI_MODEL } from "./utils/constants.mjs";
+import { SUBJECT_NAMES, getTemperature, getSTEMPrefix, JACCARD_THRESHOLD, QUALITY_RULES, AI_MODEL, ANTHROPIC_API_URL } from "./utils/constants.mjs";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim()).filter(Boolean);
 const checkRate = createRateLimiter("generate", { max: 10, windowSec: 60 });
@@ -73,7 +73,7 @@ ${QUALITY_RULES}
 
   // Helper: call Claude and parse response
   async function callClaude(messages) {
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(ANTHROPIC_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

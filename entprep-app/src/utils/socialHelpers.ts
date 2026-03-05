@@ -1,6 +1,7 @@
 // Client-side helpers for social features (friends, profiles, invite links)
 
 import { supabase } from '../config/supabase';
+import { APP_URL } from '../config/app';
 import type { Profile, Friendship } from '../types/index';
 
 // ── API call helper ──────────────────────────────────────────────────────────
@@ -98,7 +99,7 @@ export async function syncProfileStats(userId: string, xp: number, level: number
 // ── Invite links ─────────────────────────────────────────────────────────────
 
 export function buildFriendInviteUrl(nickname: string): string {
-  return `https://entprep.netlify.app?add=${encodeURIComponent(nickname)}`;
+  return `${APP_URL}?add=${encodeURIComponent(nickname)}`;
 }
 
 export function parseFriendInviteParam(): string | null {
