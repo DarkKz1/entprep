@@ -4,8 +4,7 @@ import { setUser as setSentryUser } from '../config/sentry';
 import { getMyProfile } from '../utils/socialHelpers';
 import type { AuthUser, Profile } from '../types/index';
 import { trackEvent } from '../utils/analytics';
-
-const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || "dzakpelov@gmail.com,monabekova2@gmail.com").split(",").map((e: string) => e.trim());
+import { ADMIN_EMAILS } from '../config/app';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -56,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = useMemo(() => !!user?.email && ADMIN_EMAILS.includes(user.email), [user]);
   const needsNickname = useMemo(() => !!profile && profile.nickname.startsWith('user_'), [profile]);
 
-  // TODO: set FREE_PREMIUM to false when launching paid premium
+  // flip to false when Kaspi Webpay is live (set KASPI_ENABLED=true in config/payment.ts)
   const FREE_PREMIUM = true as boolean;
   const isPremium = useMemo(() => {
     if (FREE_PREMIUM || isAdmin) return true;

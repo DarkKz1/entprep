@@ -1,6 +1,6 @@
-// Shared utilities for Netlify Functions: CORS, auth, rate limiting, validation
+// Shared utilities for Netlify Functions: CORS, auth, rate limiting, validation, premium
 
-import { VALID_SUBJECTS } from "./constants.mjs";
+import { VALID_SUBJECTS, PLANS } from "./constants.mjs";
 
 // ── CORS ────────────────────────────────────────────────────────────────────
 
@@ -131,4 +131,72 @@ export function validatePlan(body) {
   if (typeof totalTests !== "number" || totalTests < 0 || totalTests > 100000) return "Invalid totalTests";
   if (streak !== undefined && (typeof streak !== "number" || streak < 0)) return "Invalid streak";
   return null;
+}
+
+// ── Premium activation ──────────────────────────────────────────────────────
+// Shared logic used by admin-action (manual) and payment-webhook (Kaspi).
+// Looks up user by email, sets is_premium + premium_until in user_metadata,
+// inserts a payment record.
+
+const SB_URL_SHARED = process.env.VITE_SUPABASE_URL;
+const SB_KEY_SHARED = process.env.SUPABASE_SERVICE_KEY;
+
+function sbHeadersShared() {
+  return {
+    apikey: SB_KEY_SHARED,
+    Authorization: `Bearer ${SB_KEY_SHARED}`,
+    "Content-Type": "application/json",
+  };
+}
+
+export function calcPremiumUntil(plan) {
+  const now = new Date();
+  if (plan === "monthly") {
+    return new Date(now.getFullYear(), now.getMonth() + 1, now.getDate()).toISOString();
+  }
+  // yearly = until June 30 of current school year
+  const june30 = new Date(now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear(), 5, 30);
+  return june30.toISOString();
+}
+
+export async function findUserByEmail(email) {
+  const res = await fetch(
+    `${SB_URL_SHARED}/auth/v1/admin/users?filter=${encodeURIComponent(email)}&page=1&per_page=1`,
+    { headers: sbHeadersShared() },
+  );
+  if (!res.ok) throw new Error("Failed to look up user: " + await res.text());
+  const data = await res.json();
+  return (data.users || []).find(u => u.email === email) || null;
+}
+
+export async function activatePremium({ userId, userMeta, plan, kaspiTxId }) {
+  const premiumUntil = calcPremiumUntil(plan);
+  const amount = PLANS[plan]?.amount || (plan === "monthly" ? 1990 : 4990);
+
+  // Update user_metadata via Supabase Auth Admin API
+  const updateRes = await fetch(`${SB_URL_SHARED}/auth/v1/admin/users/${userId}`, {
+    method: "PUT",
+    headers: sbHeadersShared(),
+    body: JSON.stringify({
+      user_metadata: { ...userMeta, is_premium: true, premium_until: premiumUntil },
+    }),
+  });
+  if (!updateRes.ok) throw new Error("Failed to update user: " + await updateRes.text());
+
+  // Insert payment record
+  const insertRes = await fetch(`${SB_URL_SHARED}/rest/v1/payments`, {
+    method: "POST",
+    headers: { ...sbHeadersShared(), Prefer: "return=minimal" },
+    body: JSON.stringify({
+      user_id: userId,
+      amount,
+      plan,
+      kaspi_tx_id: kaspiTxId || "manual",
+      status: "completed",
+      premium_until: premiumUntil,
+    }),
+  });
+  if (!insertRes.ok) throw new Error("Failed to insert payment: " + await insertRes.text());
+
+  return premiumUntil;
 }

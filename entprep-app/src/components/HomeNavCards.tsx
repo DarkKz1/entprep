@@ -10,13 +10,13 @@ interface Props {
 }
 
 export default function HomeNavCards({ isPremium }: Props) {
-  const { nav } = useNav();
+  const { nav, openPaywall } = useNav();
   const t = useT();
 
   return (
     <>
       {/* Full ENT - prominent card */}
-      <button onClick={() => nav("fullent")} aria-label={`${t.home.fullEnt} — ${t.home.fullEntDesc}`} style={{
+      <button onClick={() => isPremium ? nav("fullent") : openPaywall('fullent')} aria-label={`${t.home.fullEnt} — ${t.home.fullEntDesc}`} style={{
         ...CARD_COMPACT,
         display: 'flex', alignItems: 'center', width: '100%',
         background: `linear-gradient(135deg, rgba(26,154,140,0.12), rgba(26,154,140,0.06))`,

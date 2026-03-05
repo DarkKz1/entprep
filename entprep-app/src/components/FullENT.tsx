@@ -17,7 +17,7 @@ import { formatTimeHMS } from '../utils/formatters';
 import TestSkeleton from './ui/TestSkeleton';
 import BackButton from './ui/BackButton';
 import ProgressBar from './ui/ProgressBar';
-import { GraduationCap, AlertTriangle, Share2, Check, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Lightbulb, Grid3X3, Play, Flag, Pause, BookOpen } from 'lucide-react';
+import { GraduationCap, AlertTriangle, Share2, Check, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Lightbulb, Grid3X3, Play, Flag, Pause, BookOpen, Crown } from 'lucide-react';
 import ShareModal from './ShareModal';
 import ReportSheet from './ui/ReportSheet';
 import { supabase } from '../config/supabase';
@@ -47,8 +47,8 @@ interface SectionResult extends Section {
 
 export default function FullENT({ finish }: FullENTProps) {
   const { prof, st } = useApp();
-  const { goHome } = useNav();
-  const { user } = useAuth();
+  const { goHome, openPaywall } = useNav();
+  const { user, isPremium } = useAuth();
   const toast = useToast();
   const bp = useBreakpoint();
   const isDesktop = bp === 'desktop';
@@ -210,8 +210,8 @@ export default function FullENT({ finish }: FullENTProps) {
         </div>
         <div style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.7 }}>{t.fullent.importantDesc}</div>
       </div>
-      <button onClick={() => setPhase("test")} style={{ width: "100%", padding: "16px", background: COLORS.teal, color: "#fff", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 24px rgba(26,154,140,0.25)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        <Play size={18} />{t.fullent.startEnt}
+      <button onClick={() => isPremium ? setPhase("test") : openPaywall('fullent')} style={{ width: "100%", padding: "16px", background: isPremium ? COLORS.teal : 'var(--bg-subtle-2)', color: isPremium ? "#fff" : 'var(--text-muted)', border: isPremium ? "none" : '1px solid var(--border)', borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isPremium ? "0 4px 24px rgba(26,154,140,0.25)" : 'none', display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        {isPremium ? <Play size={18} /> : <Crown size={18} />}{isPremium ? t.fullent.startEnt : t.paywall.getPremium}
       </button>
     </div>
   );

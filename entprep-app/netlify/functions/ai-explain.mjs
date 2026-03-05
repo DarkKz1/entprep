@@ -1,5 +1,5 @@
 import { corsResponse, CORS_HEADERS, verifyAuth, createRateLimiter, rateLimitResponse, validateExplain } from "./utils/shared.mjs";
-import { AI_MODEL } from "./utils/constants.mjs";
+import { AI_MODEL, ANTHROPIC_API_URL } from "./utils/constants.mjs";
 
 const checkRate = createRateLimiter("explain", { max: 30, windowSec: 60 });
 
@@ -11,11 +11,11 @@ export default async function handler(req) {
   const user = await verifyAuth(req);
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS_HEADERS });
 
-  // Premium check — TODO: uncomment when launching paid premium
-  // const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim());
-  // const isAdmin = adminEmails.includes(user.email);
-  // const isPremium = isAdmin || (user.user_metadata?.is_premium && new Date(user.user_metadata.premium_until) > new Date());
-  // if (!isPremium) return Response.json({ error: "Premium required" }, { status: 403, headers: CORS_HEADERS });
+  // Premium check
+  const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim());
+  const isAdmin = adminEmails.includes(user.email);
+  const isPremium = isAdmin || (user.user_metadata?.is_premium && new Date(user.user_metadata.premium_until) > new Date());
+  if (!isPremium) return Response.json({ error: "Premium required" }, { status: 403, headers: CORS_HEADERS });
 
   // Rate limit
   const retryAfter = checkRate(user.id);
@@ -65,7 +65,7 @@ export default async function handler(req) {
     : 'Ты репетитор ЕНТ (Единое национальное тестирование, Казахстан). Ответь на русском. Не повторяй текст вопроса. Верни строго JSON без markdown: {"short":"1 предложение — суть почему этот ответ правильный","detailed":"3-5 предложений — подробный разбор, если ученик ошибся — объясни ошибку, простым языком"}';
 
   try {
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch(ANTHROPIC_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

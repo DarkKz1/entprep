@@ -12,7 +12,7 @@ import { useToast } from '../contexts/ToastContext';
 import BackButton from './ui/BackButton';
 import BottomSheet from './ui/BottomSheet';
 import LoadingSpinner from './ui/LoadingSpinner';
-import { Lock, Bot, Check, X, RefreshCw, Flag, Trash2, Edit3, Save, XCircle } from 'lucide-react';
+import { Lock, Bot, Check, X, RefreshCw, Flag, Trash2, Edit3, Save, XCircle, Crown } from 'lucide-react';
 import type { Question } from '../types';
 
 // All admin write operations go through Netlify function (service key, bypasses RLS)
@@ -30,7 +30,7 @@ async function adminAction(action: string, payload: Record<string, unknown> = {}
   return data;
 }
 
-const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || "dzakpelov@gmail.com,monabekova2@gmail.com").split(",").map((e: string) => e.trim());
+import { ADMIN_EMAILS } from '../config/app';
 
 const REASON_LABELS: Record<string, string> = {
   wrong_answer: 'Неправильный ответ',
@@ -163,8 +163,8 @@ export default function Admin() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ subject, topic: topicName, examples }),
       });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); setError((err as Record<string, string>).error || "Ошибка генерации"); setLoading(false); return; }
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка генерации"); setLoading(false); return; }
       setGenerated(data);
     } catch (err) {
       setError("Ошибка сети: " + (err as Error).message);
@@ -230,6 +230,11 @@ export default function Admin() {
     });
   };
 
+  // Premium activation state
+  const [premiumEmail, setPremiumEmail] = useState('');
+  const [premiumPlan, setPremiumPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const [premiumLoading, setPremiumLoading] = useState(false);
+
   const [editError, setEditError] = useState("");
 
   const saveEdit = async () => {
@@ -279,6 +284,21 @@ export default function Admin() {
     }
   };
 
+  const handleActivatePremium = async () => {
+    const email = premiumEmail.trim();
+    if (!email || !email.includes('@')) { toast.error('Введите корректный email'); return; }
+    setPremiumLoading(true);
+    try {
+      const result = await adminAction('activate_premium', { email, plan: premiumPlan });
+      const until = (result as Record<string, unknown>).premium_until as string;
+      toast.success(`Premium активирован до ${new Date(until).toLocaleDateString('ru-RU')}`);
+      setPremiumEmail('');
+    } catch (err) {
+      toast.error('Ошибка: ' + (err as Error).message);
+    }
+    setPremiumLoading(false);
+  };
+
   useEffect(() => {
     if (activeTab === 'quality') loadReportedQuestions();
   }, [activeTab]);
@@ -319,6 +339,9 @@ export default function Admin() {
         </button>
         <button onClick={() => setActiveTab('quality')} style={tabStyle(activeTab === 'quality')}>
           <Flag size={14} />Качество
+        </button>
+        <button onClick={() => setActiveTab('premium')} style={tabStyle(activeTab === 'premium')}>
+          <Crown size={14} />Premium
         </button>
       </div>
 
@@ -574,6 +597,59 @@ export default function Admin() {
           </>}
         </BottomSheet>
       </>}
+
+      {/* ── Premium Tab ────────────────────────────────────────────────── */}
+      {activeTab === 'premium' && <>
+        <div style={{ ...CARD_COMPACT, padding: '16px', marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Crown size={16} color="#FF6B35" />Активировать Premium
+          </div>
+
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 5, display: 'block' }}>Email пользователя</label>
+            <input
+              type="email"
+              value={premiumEmail}
+              onChange={e => setPremiumEmail(e.target.value)}
+              placeholder="user@example.com"
+              style={{ width: '100%', padding: '12px 14px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontSize: 13, fontFamily: "'JetBrains Mono',monospace", boxSizing: 'border-box' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 5, display: 'block' }}>Тариф</label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(['monthly', 'yearly'] as const).map(p => (
+                <button key={p} onClick={() => setPremiumPlan(p)} style={{
+                  flex: 1, padding: '10px', borderRadius: 10, cursor: 'pointer',
+                  background: premiumPlan === p ? 'rgba(255,107,53,0.1)' : 'transparent',
+                  border: premiumPlan === p ? '1.5px solid rgba(255,107,53,0.3)' : '1px solid var(--border)',
+                  color: premiumPlan === p ? '#FF6B35' : 'var(--text-secondary)',
+                  fontSize: 12, fontWeight: 600, transition: 'all 0.2s',
+                }}>
+                  {p === 'monthly' ? '1990₸/мес' : '4990₸/год'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleActivatePremium}
+            disabled={premiumLoading || !premiumEmail.trim()}
+            style={{
+              width: '100%', padding: '13px',
+              background: premiumEmail.trim() ? 'linear-gradient(135deg,#FF6B35,#e55a2b)' : 'rgba(255,107,53,0.2)',
+              border: 'none', borderRadius: 12, color: 'var(--text)', fontSize: 13, fontWeight: 700,
+              cursor: premiumLoading ? 'wait' : 'pointer', opacity: !premiumEmail.trim() ? 0.5 : 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              transition: 'all 0.2s',
+            }}
+          >
+            <Crown size={15} />{premiumLoading ? 'Активация...' : 'Активировать'}
+          </button>
+        </div>
+      </>}
+
     </div>
   );
 }

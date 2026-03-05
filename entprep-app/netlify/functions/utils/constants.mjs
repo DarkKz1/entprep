@@ -69,5 +69,14 @@ export const QUALITY_RULES = `
 // ── AI model ────────────────────────────────────────────────────────────────
 export const AI_MODEL = "claude-sonnet-4-6-20250217";
 
+// ── Anthropic API endpoint ──────────────────────────────────────────────────
+export const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+
 // ── Dedup threshold ─────────────────────────────────────────────────────────
 export const JACCARD_THRESHOLD = 0.70;
+
+// ── Payment plans ───────────────────────────────────────────────────────────
+export const PLANS = {
+  monthly: { amount: 1990 },
+  yearly:  { amount: 4990 },
+};

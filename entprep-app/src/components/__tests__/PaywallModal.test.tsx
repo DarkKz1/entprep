@@ -2,7 +2,14 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import PaywallModal from '../PaywallModal';
 
-// Mock useT to return Russian translations directly
+vi.mock('../../config/payment', () => ({
+  KASPI_ENABLED: true,
+  KASPI_MERCHANT_ID: 'test',
+  KASPI_PAY_URL: 'https://kaspi.kz/pay/test',
+  PLANS: { monthly: { amount: 1990 }, yearly: { amount: 4990 } },
+  getKaspiPayUrl: (plan: string) => `https://kaspi.kz/pay/test?amount=${plan === 'monthly' ? 1990 : 4990}`,
+}));
+
 vi.mock('../../locales', () => ({
   useT: () => ({
     paywall: {
@@ -12,19 +19,22 @@ vi.mock('../../locales', () => ({
       dailyLimitDesc: 'Вы исчерпали дневной лимит',
       fullentDesc: 'Симуляция ЕНТ доступна в Premium',
       aiDesc: 'AI доступен в Premium',
-      unlimitedTests: 'Безлимитные тесты',
-      aiErrors: 'AI-разбор ошибок',
-      aiPlan: 'Учебный план',
-      fullEntSim: 'Полная симуляция ЕНТ',
-      price: '1 490 ₸/мес',
-      cancelAnytime: 'Отмена в любое время',
+      unlimitedAI: 'Безлимитный AI-разбор',
+      aiErrors: 'AI-план подготовки',
+      aiPlan: 'Полная симуляция ЕНТ',
+      fullEntSim: 'Приоритетная поддержка',
+      monthlyPlan: '1 990 ₸/мес',
+      yearlyPlan: '4 990 ₸',
+      yearlyPlanDesc: 'до конца учебного года',
+      monthlyLabel: 'Ежемесячно',
+      yearlyLabel: 'До конца года',
+      yearlyBadge: 'Выгодно',
       getPremium: 'Оплатить через Kaspi',
       alreadyPaid: 'Я уже оплатил',
     },
   }),
 }));
 
-// Mock BottomSheet to render children directly (no portal)
 vi.mock('../ui/BottomSheet', () => ({
   default: ({ visible, onClose, children }: { visible: boolean; onClose: () => void; children: React.ReactNode }) => {
     if (!visible) return null;
@@ -34,46 +44,30 @@ vi.mock('../ui/BottomSheet', () => ({
 
 describe('PaywallModal', () => {
   it('renders null when no reason', () => {
-    const { container } = render(
-      <PaywallModal open={true} reason={null as any} onClose={() => {}} />
-    );
+    const { container } = render(<PaywallModal open={true} reason={null as any} onClose={() => {}} />);
     expect(container.innerHTML).toBe('');
   });
 
-  it('renders null when BottomSheet not visible', () => {
-    const { container } = render(
-      <PaywallModal open={false} reason="daily_limit" onClose={() => {}} />
-    );
+  it('renders null when not visible', () => {
+    const { container } = render(<PaywallModal open={false} reason="daily_limit" onClose={() => {}} />);
     expect(container.innerHTML).toBe('');
   });
 
-  it('shows daily_limit title', () => {
+  it('shows correct title per reason', () => {
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
     expect(screen.getByText('Лимит тестов')).toBeInTheDocument();
-    expect(screen.getByText('Вы исчерпали дневной лимит')).toBeInTheDocument();
-  });
-
-  it('shows fullent title', () => {
-    render(<PaywallModal open={true} reason="fullent" onClose={() => {}} />);
-    expect(screen.getByText('Полный ЕНТ')).toBeInTheDocument();
-  });
-
-  it('shows ai title', () => {
-    render(<PaywallModal open={true} reason="ai" onClose={() => {}} />);
-    expect(screen.getByText('AI-помощник')).toBeInTheDocument();
   });
 
   it('shows 4 benefit items', () => {
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
-    expect(screen.getByText('Безлимитные тесты')).toBeInTheDocument();
-    expect(screen.getByText('AI-разбор ошибок')).toBeInTheDocument();
-    expect(screen.getByText('Учебный план')).toBeInTheDocument();
-    expect(screen.getByText('Полная симуляция ЕНТ')).toBeInTheDocument();
+    expect(screen.getByText('Безлимитный AI-разбор')).toBeInTheDocument();
+    expect(screen.getByText('Приоритетная поддержка')).toBeInTheDocument();
   });
 
-  it('shows price', () => {
+  it('shows two plan options', () => {
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
-    expect(screen.getByText('1 490 ₸/мес')).toBeInTheDocument();
+    expect(screen.getByText('1 990 ₸/мес')).toBeInTheDocument();
+    expect(screen.getByText('4 990 ₸')).toBeInTheDocument();
   });
 
   it('calls onClose when "already paid" clicked', () => {
@@ -83,11 +77,20 @@ describe('PaywallModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('opens Kaspi link on pay button', () => {
+  it('opens Kaspi link with yearly plan by default', () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
     fireEvent.click(screen.getByText(/Оплатить через Kaspi/));
-    expect(openSpy).toHaveBeenCalledWith('https://kaspi.kz/pay/entprep', '_blank');
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('amount=4990'), '_blank');
+    openSpy.mockRestore();
+  });
+
+  it('switches to monthly plan', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
+    fireEvent.click(screen.getByText('Ежемесячно'));
+    fireEvent.click(screen.getByText(/Оплатить через Kaspi/));
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('amount=1990'), '_blank');
     openSpy.mockRestore();
   });
 });

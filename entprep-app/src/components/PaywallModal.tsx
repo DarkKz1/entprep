@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import BottomSheet from './ui/BottomSheet';
-import { Crown, Sparkles, Bot, GraduationCap, Infinity } from 'lucide-react';
+import { Crown, Sparkles, Bot, GraduationCap, Headphones } from 'lucide-react';
 import { COLORS } from '../constants/styles';
 import { useT } from '../locales';
+import { getKaspiPayUrl } from '../config/payment';
 import type { PaywallReason } from '../types';
+import type { PlanType } from '../config/payment';
 
 interface PaywallModalProps {
   open: boolean;
@@ -11,11 +13,12 @@ interface PaywallModalProps {
   onClose: () => void;
 }
 
-const BENEFIT_ICONS = [Infinity, Bot, Sparkles, GraduationCap];
-const BENEFIT_COLORS = [COLORS.accent, COLORS.teal, COLORS.cyan, COLORS.teal];
+const BENEFIT_ICONS = [Bot, Sparkles, GraduationCap, Headphones];
+const BENEFIT_COLORS = [COLORS.teal, COLORS.cyan, COLORS.teal, COLORS.accent];
 
 export default function PaywallModal({ open, reason, onClose }: PaywallModalProps) {
   const t = useT();
+  const [plan, setPlan] = useState<PlanType>('yearly');
   if (!reason) return null;
 
   const titles: Record<string, string> = {
@@ -31,11 +34,16 @@ export default function PaywallModal({ open, reason, onClose }: PaywallModalProp
   };
 
   const benefitLabels = [
-    t.paywall.unlimitedTests,
+    t.paywall.unlimitedAI,
     t.paywall.aiErrors,
     t.paywall.aiPlan,
     t.paywall.fullEntSim,
   ];
+
+  const handlePay = () => {
+    const url = getKaspiPayUrl(plan);
+    if (url) window.open(url, '_blank');
+  };
 
   return (
     <BottomSheet visible={open} onClose={onClose}>
@@ -57,6 +65,7 @@ export default function PaywallModal({ open, reason, onClose }: PaywallModalProp
           {descs[reason] || ''}
         </div>
 
+        {/* Benefits list */}
         <div style={{
           background: 'var(--bg-subtle)',
           border: '1px solid var(--border)',
@@ -78,18 +87,57 @@ export default function PaywallModal({ open, reason, onClose }: PaywallModalProp
           })}
         </div>
 
-        <div style={{
-          fontSize: 22, fontWeight: 800, color: COLORS.accent,
-          fontFamily: "'Unbounded', sans-serif", marginBottom: 4,
-        }}>
-          {t.paywall.price}
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 16 }}>
-          {t.paywall.cancelAnytime}
+        {/* Plan selector */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button
+            onClick={() => setPlan('monthly')}
+            style={{
+              flex: 1, padding: '14px 10px', borderRadius: 12, cursor: 'pointer',
+              background: plan === 'monthly' ? 'rgba(255,107,53,0.08)' : 'var(--bg-subtle)',
+              border: plan === 'monthly' ? `2px solid ${COLORS.accent}` : '2px solid var(--border)',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              {t.paywall.monthlyLabel}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: plan === 'monthly' ? COLORS.accent : 'var(--text)', fontFamily: "'Unbounded', sans-serif" }}>
+              {t.paywall.monthlyPlan}
+            </div>
+          </button>
+
+          <button
+            onClick={() => setPlan('yearly')}
+            style={{
+              flex: 1, padding: '14px 10px', borderRadius: 12, cursor: 'pointer', position: 'relative',
+              background: plan === 'yearly' ? 'rgba(255,107,53,0.08)' : 'var(--bg-subtle)',
+              border: plan === 'yearly' ? `2px solid ${COLORS.accent}` : '2px solid var(--border)',
+              transition: 'all 0.2s',
+            }}
+          >
+            <div style={{
+              position: 'absolute', top: -8, right: 10,
+              background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentDark})`,
+              color: '#fff', fontSize: 9, fontWeight: 700,
+              padding: '2px 8px', borderRadius: 6,
+            }}>
+              {t.paywall.yearlyBadge}
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              {t.paywall.yearlyLabel}
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: plan === 'yearly' ? COLORS.accent : 'var(--text)', fontFamily: "'Unbounded', sans-serif" }}>
+              {t.paywall.yearlyPlan}
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 2 }}>
+              {t.paywall.yearlyPlanDesc}
+            </div>
+          </button>
         </div>
 
+        {/* CTA */}
         <button
-          onClick={() => window.open('https://kaspi.kz/pay/entprep', '_blank')}
+          onClick={handlePay}
           style={{
             width: '100%', padding: '15px',
             background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentDark})`,

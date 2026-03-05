@@ -2,7 +2,7 @@
 // Uses Supabase REST API with service key (bypasses RLS)
 // No supabase-js dependency — pure fetch for Netlify Functions compatibility
 
-import { CORS_HEADERS, corsResponse, verifyAuth } from "./utils/shared.mjs";
+import { CORS_HEADERS, corsResponse, verifyAuth, findUserByEmail, activatePremium } from "./utils/shared.mjs";
 import { tokenize, jaccard, checkGenerated } from "./utils/quality.mjs";
 import { JACCARD_THRESHOLD } from "./utils/constants.mjs";
 
@@ -163,6 +163,24 @@ export default async function handler(req) {
           `select=id,reason,comment,created_at,user_id&question_id=eq.${question_id}&order=created_at.desc`
         );
         return Response.json({ data }, { headers: CORS_HEADERS });
+      }
+
+      case "activate_premium": {
+        const { email, plan: premiumPlan } = body;
+        if (!email) return Response.json({ error: "Missing email" }, { status: 400, headers: CORS_HEADERS });
+        if (!['monthly', 'yearly'].includes(premiumPlan)) return Response.json({ error: "Invalid plan" }, { status: 400, headers: CORS_HEADERS });
+
+        const targetUser = await findUserByEmail(email);
+        if (!targetUser) return Response.json({ error: `User not found: ${email}` }, { status: 404, headers: CORS_HEADERS });
+
+        const premiumUntil = await activatePremium({
+          userId: targetUser.id,
+          userMeta: targetUser.user_metadata,
+          plan: premiumPlan,
+          kaspiTxId: "manual",
+        });
+
+        return Response.json({ ok: true, premium_until: premiumUntil }, { headers: CORS_HEADERS });
       }
 
       default:
