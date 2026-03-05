@@ -2,7 +2,54 @@
   command = "npm run build"
   publish = "dist"
 
+# Cache Vite build artifacts between deploys
+[[plugins]]
+  package = "netlify-plugin-cache"
+  [plugins.inputs]
+    paths = ["node_modules/.vite", "node_modules/.cache"]
+
+# Security headers for all pages
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.ingest.sentry.io; frame-src 'none'; object-src 'none'; base-uri 'self'"
+
+# Immutable cache for hashed assets (Vite adds content hashes)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Service worker must always revalidate
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Plausible Analytics proxy (bypasses ad-blockers)
+[[redirects]]
+  from = "/js/pa.js"
+  to = "https://plausible.io/js/pa-VPp2HjTqwVJIFO4VZBndo.js"
+  status = 200
+
+[[redirects]]
+  from = "/api/event"
+  to = "https://plausible.io/api/event"
+  status = 202
+
+# API proxy to Netlify Functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback — all non-file routes serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200

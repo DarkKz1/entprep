@@ -3,17 +3,93 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f0f1a" />
-    <meta name="description" content="Подготовка к ЕНТ: 1950 вопросов, 13 предметов" />
+    <meta name="theme-color" content="#0C0C14" />
+    <meta name="description" content="Бесплатная подготовка к ЕНТ: 27 000+ вопросов по 13 предметам, адаптивное обучение, полная симуляция экзамена, разбор ошибок и калькулятор грантов. Формат ЕНТ 2025/2026." />
+    <meta name="keywords" content="ЕНТ, подготовка к ЕНТ, тесты ЕНТ, Единое национальное тестирование, Казахстан, пробный ЕНТ, вопросы ЕНТ, ент 2025, ент 2026, гранты, ҰБТ, ҰБТ дайындық" />
+    <link rel="canonical" href="https://entprep.netlify.app" />
+    <link rel="alternate" hreflang="ru" href="https://entprep.netlify.app" />
+    <link rel="alternate" hreflang="kk" href="https://entprep.netlify.app" />
+    <link rel="alternate" hreflang="x-default" href="https://entprep.netlify.app" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://entprep.netlify.app" />
+    <meta property="og:title" content="ENTprep — Бесплатная подготовка к ЕНТ" />
+    <meta property="og:description" content="27 000+ вопросов по 13 предметам, адаптивное обучение, симуляция экзамена и калькулятор грантов. Формат ЕНТ 2025/2026." />
+    <meta property="og:image" content="https://entprep.netlify.app/og-image.png" />
+    <meta property="og:locale" content="ru_KZ" />
+    <meta property="og:locale:alternate" content="kk_KZ" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ENTprep — Бесплатная подготовка к ЕНТ" />
+    <meta name="twitter:description" content="27 000+ вопросов, адаптивное обучение, симуляция экзамена. Бесплатно." />
+    <meta name="twitter:image" content="https://entprep.netlify.app/og-image.png" />
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ENTprep",
+      "url": "https://entprep.netlify.app",
+      "description": "Бесплатная подготовка к ЕНТ: 27 000+ вопросов по 13 предметам, адаптивное обучение, симуляция экзамена и калькулятор грантов.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KZT" },
+      "inLanguage": ["ru", "kk"],
+      "audience": { "@type": "EducationalAudience", "educationalRole": "student" },
+      "about": {
+        "@type": "EducationalOccupationalProgram",
+        "name": "Единое национальное тестирование (ЕНТ)",
+        "educationalProgramMode": "online"
+      },
+      "privacyPolicy": "https://entprep.netlify.app/privacy.html"
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icon-180.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ENTprep" />
-    <title>ENTprep - Подготовка к ЕНТ</title>
+    <title>ENTprep — Бесплатная подготовка к ЕНТ 2025/2026</title>
+    <!-- Plausible Analytics (privacy-first, no cookies) — proxied via Netlify -->
+    <script async src="/js/pa.js"></script>
+    <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
+    <style>
+      #splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0C0C14;transition:opacity 0.4s ease}
+      #splash.hide{opacity:0;pointer-events:none}
+      #splash .logo{font-family:'Segoe UI',-apple-system,sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px}
+      #splash .sub{font-family:'Segoe UI',-apple-system,sans-serif;font-size:12px;margin-top:10px;opacity:0.5;color:#64748b}
+      #splash .spin{width:28px;height:28px;border:3px solid rgba(255,107,53,0.15);border-top-color:#FF6B35;border-radius:50%;animation:sp 0.8s linear infinite;margin-top:28px}
+      @keyframes sp{to{transform:rotate(360deg)}}
+    </style>
   </head>
   <body>
+    <div id="splash">
+      <div class="logo"><span style="color:#FF6B35">ENT</span><span style="color:#1A9A8C">prep</span></div>
+      <div class="sub">Подготовка к ЕНТ</div>
+      <div class="spin"></div>
+    </div>
+    <script>
+      (function(){
+        try{
+          var d=JSON.parse(localStorage.getItem('entprep_data')||'{}');
+          if(d.st&&d.st.theme==='light'){
+            var s=document.getElementById('splash');
+            s.style.background='#FAFAF8';
+            s.querySelector('.sub').style.color='#94a3b8';
+            document.querySelector('meta[name="theme-color"]').setAttribute('content','#FAFAF8');
+            var st=document.createElement('style');
+            st.id='pre-theme';
+            /* GENERATED FROM constants/themes.ts LIGHT palette — keep in sync */
+            st.textContent=':root{--bg:#FAFAF8;--bg-card:rgba(255,255,255,0.92);--bg-header:rgba(255,255,255,0.95);--bg-footer:rgba(255,255,255,0.96);--bg-hero:linear-gradient(135deg,rgba(255,248,240,0.9),rgba(250,245,238,0.9),rgba(240,248,246,0.8));--bg-modal:linear-gradient(180deg,#F5F3F0,#FAFAF8);--bg-sheet:rgba(255,255,255,0.99);--bg-prompt:rgba(255,255,255,0.95);--bg-overlay:rgba(0,0,0,0.5);--bg-overlay-light:rgba(0,0,0,0.3);--bg-elevated:rgba(250,250,248,0.95);--bg-subtle:rgba(0,0,0,0.03);--bg-subtle-2:rgba(0,0,0,0.05);--bg-option:rgba(0,0,0,0.02);--bg-disabled:rgba(230,230,235,0.8);--bg-card-dim:rgba(255,255,255,0.5);--text:#1a1a2e;--text-body:#334155;--text-secondary:#64748b;--text-muted:#94a3b8;--text-dim:#b0b8c4;--text-light:#475569;--border:rgba(0,0,0,0.08);--border-light:rgba(0,0,0,0.06);--border-md:rgba(0,0,0,0.1);--border-strong:rgba(0,0,0,0.1);--border-stronger:rgba(0,0,0,0.12);--scroll-thumb:rgba(0,0,0,0.1);--spinner-track:rgba(0,0,0,0.08);--toggle-off:rgba(0,0,0,0.08);--sheet-handle:rgba(0,0,0,0.12);--skeleton-bg:rgba(0,0,0,0.06);--shadow-sm:0 2px 8px rgba(0,0,0,0.04);--shadow-md:0 4px 16px rgba(0,0,0,0.06);--shadow-glow:0 4px 16px rgba(255,107,53,0.06);--color-scheme:light;--theme-color:#FAFAF8}';
+            document.head.appendChild(st);
+          }
+        }catch(e){}
+      })();
+    </script>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

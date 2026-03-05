@@ -12,38 +12,39 @@ const srcDir = join(__dirname, '..', 'src');
 const toURL = (p) => pathToFileURL(p).href;
 
 const FIX_MODE = process.argv.includes('--fix');
+const FORCE_MODE = process.argv.includes('--force');
 
 // ── Import all question files ──────────────────────────────────────────────
 
-const { MQ } = await import(toURL(join(srcDir, 'data/questions/math_literacy.js')));
-const { RP } = await import(toURL(join(srcDir, 'data/questions/reading_passages.js')));
-const { HQ } = await import(toURL(join(srcDir, 'data/questions/history_kz.js')));
-const { GEO } = await import(toURL(join(srcDir, 'data/questions/geography.js')));
-const { ENG } = await import(toURL(join(srcDir, 'data/questions/english.js')));
-const { MPQ } = await import(toURL(join(srcDir, 'data/questions/math_profile.js')));
-const { PHYS } = await import(toURL(join(srcDir, 'data/questions/physics.js')));
-const { BIO } = await import(toURL(join(srcDir, 'data/questions/biology.js')));
-const { CHEM } = await import(toURL(join(srcDir, 'data/questions/chemistry.js')));
-const { WH } = await import(toURL(join(srcDir, 'data/questions/world_history.js')));
-const { INFO } = await import(toURL(join(srcDir, 'data/questions/informatics.js')));
-const { LAW } = await import(toURL(join(srcDir, 'data/questions/law.js')));
-const { LIT } = await import(toURL(join(srcDir, 'data/questions/literature.js')));
+const { MQ } = await import(toURL(join(srcDir, 'data/questions/math_literacy.ts')));
+const { RP } = await import(toURL(join(srcDir, 'data/questions/reading_passages.ts')));
+const { HQ } = await import(toURL(join(srcDir, 'data/questions/history_kz.ts')));
+const { GEO } = await import(toURL(join(srcDir, 'data/questions/geography.ts')));
+const { ENG } = await import(toURL(join(srcDir, 'data/questions/english.ts')));
+const { MPQ } = await import(toURL(join(srcDir, 'data/questions/math_profile.ts')));
+const { PHYS } = await import(toURL(join(srcDir, 'data/questions/physics.ts')));
+const { BIO } = await import(toURL(join(srcDir, 'data/questions/biology.ts')));
+const { CHEM } = await import(toURL(join(srcDir, 'data/questions/chemistry.ts')));
+const { WH } = await import(toURL(join(srcDir, 'data/questions/world_history.ts')));
+const { INFO } = await import(toURL(join(srcDir, 'data/questions/informatics.ts')));
+const { LAW } = await import(toURL(join(srcDir, 'data/questions/law.ts')));
+const { LIT } = await import(toURL(join(srcDir, 'data/questions/literature.ts')));
 
 // Subject ID → { array, exportName, file, isReading }
 const SUBJECTS = {
-  math:          { array: MQ,   exportName: 'MQ',   file: 'data/questions/math_literacy.js' },
-  reading:       { array: RP,   exportName: 'RP',   file: 'data/questions/reading_passages.js', isReading: true },
-  history:       { array: HQ,   exportName: 'HQ',   file: 'data/questions/history_kz.js' },
-  geography:     { array: GEO,  exportName: 'GEO',  file: 'data/questions/geography.js' },
-  english:       { array: ENG,  exportName: 'ENG',  file: 'data/questions/english.js' },
-  math_profile:  { array: MPQ,  exportName: 'MPQ',  file: 'data/questions/math_profile.js' },
-  physics:       { array: PHYS, exportName: 'PHYS', file: 'data/questions/physics.js' },
-  biology:       { array: BIO,  exportName: 'BIO',  file: 'data/questions/biology.js' },
-  chemistry:     { array: CHEM, exportName: 'CHEM', file: 'data/questions/chemistry.js' },
-  world_history: { array: WH,   exportName: 'WH',   file: 'data/questions/world_history.js' },
-  informatics:   { array: INFO, exportName: 'INFO', file: 'data/questions/informatics.js' },
-  law:           { array: LAW,  exportName: 'LAW',  file: 'data/questions/law.js' },
-  literature:    { array: LIT,  exportName: 'LIT',  file: 'data/questions/literature.js' },
+  math:          { array: MQ,   exportName: 'MQ',   file: 'data/questions/math_literacy.ts' },
+  reading:       { array: RP,   exportName: 'RP',   file: 'data/questions/reading_passages.ts', isReading: true },
+  history:       { array: HQ,   exportName: 'HQ',   file: 'data/questions/history_kz.ts' },
+  geography:     { array: GEO,  exportName: 'GEO',  file: 'data/questions/geography.ts' },
+  english:       { array: ENG,  exportName: 'ENG',  file: 'data/questions/english.ts' },
+  math_profile:  { array: MPQ,  exportName: 'MPQ',  file: 'data/questions/math_profile.ts' },
+  physics:       { array: PHYS, exportName: 'PHYS', file: 'data/questions/physics.ts' },
+  biology:       { array: BIO,  exportName: 'BIO',  file: 'data/questions/biology.ts' },
+  chemistry:     { array: CHEM, exportName: 'CHEM', file: 'data/questions/chemistry.ts' },
+  world_history: { array: WH,   exportName: 'WH',   file: 'data/questions/world_history.ts' },
+  informatics:   { array: INFO, exportName: 'INFO', file: 'data/questions/informatics.ts' },
+  law:           { array: LAW,  exportName: 'LAW',  file: 'data/questions/law.ts' },
+  literature:    { array: LIT,  exportName: 'LIT',  file: 'data/questions/literature.ts' },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -70,6 +71,9 @@ function maxConsecutive(questions) {
 // Strip option letter prefixes like "А) ", "Б) ", "В) ", "Г) " (Cyrillic & Latin)
 const OPTION_PREFIX_RE = /^[АБВГабвгABCDabcd]\)\s*/;
 
+// Strip Cyrillic parenthetical hints like "(обязательно)", "(основатель)"
+const CYRILLIC_PARENS_RE = /\s*\([а-яА-ЯёЁ][а-яА-ЯёЁ\s,ё]{3,}\)/g;
+
 function stripOptionPrefix(text) {
   return text.replace(OPTION_PREFIX_RE, '');
 }
@@ -85,6 +89,29 @@ function hasOptionPrefixes(questions) {
 
 function stripPrefixesFromQuestion(q) {
   return { ...q, o: q.o.map(o => stripOptionPrefix(o)) };
+}
+
+function stripParenHints(text) {
+  return text.replace(CYRILLIC_PARENS_RE, '').trim();
+}
+
+function hasParenHints(questions) {
+  for (const q of questions) {
+    for (const o of q.o) {
+      if (CYRILLIC_PARENS_RE.test(o)) {
+        CYRILLIC_PARENS_RE.lastIndex = 0;
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function stripHintsFromQuestion(q) {
+  const stripped = q.o.map(o => stripParenHints(o));
+  // If stripping creates duplicate options, keep originals
+  if (new Set(stripped).size < new Set(q.o).size) return q;
+  return { ...q, o: stripped };
 }
 
 // Fisher-Yates shuffle
@@ -170,12 +197,13 @@ function validateQuestion(q, idx, subjectId) {
 
   // W8: parenthetical hints — Cyrillic text in brackets that may serve as hints
   if (Array.isArray(q.o)) {
-    const CYRILLIC_PARENS_RE = /\([а-яА-ЯёЁ][а-яА-ЯёЁ\s,ё]{3,}\)/;
     for (let i = 0; i < q.o.length; i++) {
       if (q.o[i] && CYRILLIC_PARENS_RE.test(q.o[i])) {
+        CYRILLIC_PARENS_RE.lastIndex = 0;
         const match = q.o[i].match(CYRILLIC_PARENS_RE);
         warnings.push(`W8: option[${i}] has Cyrillic hint in parens "${match[0]}" (idx ${idx})`);
       }
+      CYRILLIC_PARENS_RE.lastIndex = 0;
     }
   }
 
@@ -206,8 +234,14 @@ function validateSubject(subjectId, info) {
     questions = info.array;
   }
 
-  // C7: exactly 150 questions
-  if (questions.length !== 150) criticals.push(`C7: count ≠ 150 (got ${questions.length})`);
+  // C7: question count check — static fallbacks should have 150, warn if different
+  if (questions.length !== 150) {
+    if (FORCE_MODE) {
+      warnings.push(`W9: count ≠ 150 (got ${questions.length}) — allowed by --force`);
+    } else {
+      criticals.push(`C7: count ≠ 150 (got ${questions.length}) — use --force to allow`);
+    }
+  }
 
   // Validate each question
   for (let i = 0; i < questions.length; i++) {
@@ -355,15 +389,16 @@ for (const [subjectId, info] of Object.entries(SUBJECTS)) {
     let didFix = false;
 
     if (info.isReading) {
-      // Strip prefixes from reading passages
+      // Strip prefixes and hints from reading passages
       const strippedPassages = info.array.map(p => ({
         ...p,
-        qs: p.qs.map(q => stripPrefixesFromQuestion(q)),
+        qs: p.qs.map(q => stripHintsFromQuestion(stripPrefixesFromQuestion(q))),
       }));
       const allQs = flattenReading(strippedPassages);
       const hadPrefixes = hasOptionPrefixes(flattenReading(info.array));
+      const hadHints = hasParenHints(flattenReading(info.array));
 
-      if (needsFix(allQs) || hadPrefixes) {
+      if (needsFix(allQs) || hadPrefixes || hadHints) {
         // Shuffle within each passage (preserve passage grouping)
         const fixedPassages = strippedPassages.map(p => ({
           ...p,
@@ -382,20 +417,23 @@ for (const [subjectId, info] of Object.entries(SUBJECTS)) {
         const newDist = cDistribution(flatFixed);
         const fixes = [];
         if (hadPrefixes) fixes.push('stripped prefixes');
+        if (hadHints) fixes.push('stripped hints');
         if (needsFix(flattenReading(info.array))) fixes.push('fixed c-dist');
         console.log(`   ✏️  FIXED (${fixes.join(', ')}) → c:[${newDist.join(',')}]`);
         didFix = true;
       }
     } else {
-      const stripped = info.array.map(q => stripPrefixesFromQuestion(q));
+      const stripped = info.array.map(q => stripHintsFromQuestion(stripPrefixesFromQuestion(q)));
       const hadPrefixes = hasOptionPrefixes(info.array);
+      const hadHints = hasParenHints(info.array);
 
-      if (needsFix(stripped) || hadPrefixes) {
+      if (needsFix(stripped) || hadPrefixes || hadHints) {
         const fixed = needsFix(stripped) ? fixDistribution(stripped) : stripped.map(q => shuffleQuestionOptions(q));
         rewriteRegularFile(subjectId, info, fixed);
         const newDist = cDistribution(fixed);
         const fixes = [];
         if (hadPrefixes) fixes.push('stripped prefixes');
+        if (hadHints) fixes.push('stripped hints');
         if (needsFix(info.array)) fixes.push('fixed c-dist');
         console.log(`   ✏️  FIXED (${fixes.join(', ')}) → c:[${newDist.join(',')}]`);
         didFix = true;

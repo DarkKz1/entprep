@@ -1,2 +1,41 @@
-.vercel
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment files
 .env
+.env.local
+.env.*.local
+
+# Netlify
+.netlify/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Generated reports
+audit-report.json
+
+# Test coverage
+coverage/
+
+# Translation batch files (transient)
+translations/
+
+# Vercel (legacy)
+.vercel
