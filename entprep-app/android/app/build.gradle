@@ -19,9 +19,9 @@ android {
     signingConfigs {
         release {
             storeFile file('../entprep-release.keystore')
-            storePassword 'entprep2026'
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: project.findProperty('KEYSTORE_PASSWORD') ?: ''
             keyAlias 'entprep'
-            keyPassword 'entprep2026'
+            keyPassword System.getenv('KEY_PASSWORD') ?: project.findProperty('KEY_PASSWORD') ?: ''
         }
     }
     buildTypes {
