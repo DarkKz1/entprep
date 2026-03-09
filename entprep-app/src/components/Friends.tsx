@@ -392,10 +392,10 @@ export default function Friends() {
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: "'JetBrains Mono',monospace" }}>@{req.profile.nickname}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, marginLeft: 8 }}>
-                  <button onClick={() => handleRespond(req.id, 'accepted')} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <button onClick={() => handleRespond(req.id, 'accepted')} style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     <UserCheck size={18} color={COLORS.green} />
                   </button>
-                  <button onClick={() => handleRespond(req.id, 'declined')} style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <button onClick={() => handleRespond(req.id, 'declined')} style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     <UserX size={18} color={COLORS.red} />
                   </button>
                 </div>

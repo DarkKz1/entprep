@@ -20,7 +20,8 @@ export default function BackButton({ onClick, label, style }: BackButtonProps) {
       style={{
         ...CARD_COMPACT,
         background: 'var(--bg-card)',
-        padding: '8px 12px',
+        padding: '10px 14px',
+        minHeight: 44,
         cursor: 'pointer',
         color: 'var(--text)',
         fontSize: 11,

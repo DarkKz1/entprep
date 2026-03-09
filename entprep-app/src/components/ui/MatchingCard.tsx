@@ -3,6 +3,7 @@ import { Check, X } from 'lucide-react';
 import { COLORS } from '../../constants/styles';
 import { shuffleArray } from '../../utils/questionHelpers';
 import type { Question } from '../../types';
+import { useT } from '../../locales';
 
 interface MatchingCardProps {
   question: Question;
@@ -17,6 +18,7 @@ export default function MatchingCard({
   showResult,
   userAnswer,
 }: MatchingCardProps) {
+  const t = useT();
   // Defensive: ensure pairs is a valid array
   const rawPairs = question.pairs;
   const pairs: [string, string][] = Array.isArray(rawPairs) ? rawPairs : [];
@@ -81,7 +83,7 @@ export default function MatchingCard({
           background: 'rgba(26,154,140,0.1)', color: COLORS.teal,
           fontWeight: 600, fontSize: 10,
         }}>
-          Соответствие
+          {t.test.matching}
         </span>
         {showResult ? (
           <span style={{
@@ -183,6 +185,7 @@ export default function MatchingCard({
                     ref={el => { selectRefs.current[leftIdx] = el; }}
                     value={currentVal ?? ''}
                     onChange={e => setMatch(leftIdx, Number(e.target.value))}
+                    aria-label={`${t.test.matching} ${leftIdx + 1}: ${pair[0]}`}
                     style={{
                       width: '100%', padding: '9px 10px',
                       background: isMissing ? 'rgba(245,158,11,0.08)' : 'var(--bg-subtle)',
@@ -196,7 +199,7 @@ export default function MatchingCard({
                       appearance: 'auto',
                     }}
                   >
-                    <option value="" disabled>Выберите...</option>
+                    <option value="" disabled>{t.test.selectPlaceholder}</option>
                     {shuffledRightIndices.map((realIdx, shuffledIdx) => (
                       <option key={shuffledIdx} value={shuffledIdx}>
                         {String.fromCharCode(65 + shuffledIdx)}) {pairs[realIdx][1]}
@@ -226,7 +229,7 @@ export default function MatchingCard({
             transition: 'all 0.2s',
           }}
         >
-          {allFilled ? 'Подтвердить' : `Подтвердить (${filledCount}/${pairs.length})`}
+          {allFilled ? t.test.confirmBtn : `${t.test.confirmBtn} (${filledCount}/${pairs.length})`}
         </button>
       )}
     </div>

@@ -3,6 +3,7 @@ import { CARD_COMPACT, COLORS } from '../../constants/styles';
 import { Check, X } from 'lucide-react';
 import type { Question } from '../../types';
 import { scoreQuestion } from '../../utils/scoringEngine';
+import { useT } from '../../locales';
 
 interface MultipleAnswerCardProps {
   question: Question;
@@ -17,6 +18,7 @@ export default function MultipleAnswerCard({
   showResult,
   userAnswer,
 }: MultipleAnswerCardProps) {
+  const t = useT();
   const [selected, setSelected] = useState<Set<number>>(() => userAnswer ? new Set(userAnswer) : new Set());
   const correctArr = Array.isArray(question.c) ? question.c : [question.c];
 
@@ -54,10 +56,10 @@ export default function MultipleAnswerCard({
           background: 'rgba(26,154,140,0.1)', color: COLORS.teal,
           fontWeight: 600, fontSize: 10,
         }}>
-          Несколько ответов
+          {t.test.multipleAnswers}
         </span>
         {!showResult && (
-          <span>Выбрано: {selected.size}</span>
+          <span>{t.test.selected}: {selected.size}</span>
         )}
         {result && (
           <span style={{
@@ -142,7 +144,7 @@ export default function MultipleAnswerCard({
             transition: 'all 0.2s',
           }}
         >
-          Подтвердить ({selected.size})
+          {t.test.confirmBtn} ({selected.size})
         </button>
       )}
     </div>

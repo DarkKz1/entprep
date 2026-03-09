@@ -59,7 +59,7 @@ export default function Auth({ user, onSignOut }: AuthProps) {
             style={{ position: 'relative', width: 36, height: 36, cursor: 'pointer', flexShrink: 0 }}
           >
             {avatar ? (
-              <img src={avatar} alt="" style={{ width: 36, height: 36, borderRadius: 18, border: `2px solid ${COLORS.accent}`, objectFit: 'cover' }} />
+              <img src={avatar} alt={fullName || 'Avatar'} style={{ width: 36, height: 36, borderRadius: 18, border: `2px solid ${COLORS.accent}`, objectFit: 'cover' }} />
             ) : (
               <div style={{ width: 36, height: 36, borderRadius: 18, border: `2px solid ${COLORS.accent}`, background: `linear-gradient(135deg,${COLORS.accent},#e55a2b)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>
                 {initials}

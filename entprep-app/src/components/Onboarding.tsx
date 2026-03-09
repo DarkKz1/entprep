@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, Brain, Trophy, ChevronRight, ChevronLeft } from 'lucide-react';
 import { CARD_HERO, TYPE, COLORS } from '../constants/styles';
 import { useT } from '../locales';
+import { TOTAL_Q } from '../config/questionPools';
 import type { LucideIcon } from 'lucide-react';
 
 interface SlideConfig {
@@ -25,11 +26,12 @@ export default function Onboarding({ onFinish }: OnboardingProps) {
   const cfg = SLIDE_CONFIGS[idx];
   const isLast = idx === SLIDE_CONFIGS.length - 1;
 
-  const titles = [t.onboarding.slide1Title, t.onboarding.slide2Title, t.onboarding.slide3Title];
+  const qCount = `${Math.floor(TOTAL_Q / 1000)} 000+`;
+  const titles = [t.onboarding.slide1Title.replace(/[\d\s]+000\+/, qCount), t.onboarding.slide2Title, t.onboarding.slide3Title];
   const descs = [t.onboarding.slide1Desc, t.onboarding.slide2Desc, t.onboarding.slide3Desc];
 
   return (
-    <div style={{ padding: '0 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+    <div style={{ padding: '0 20px', minHeight: '100dvh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center', marginBottom: 8 }}>
         <div style={{ fontSize: 15, fontWeight: 800, fontFamily: "'Unbounded',sans-serif", marginBottom: 40 }}>
           <span style={{ color: COLORS.accent }}>ENT</span><span style={{ color: COLORS.teal }}>prep</span>

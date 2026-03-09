@@ -213,7 +213,7 @@ export default function Home() {
                 localStorage.setItem('entprep_auth_nudge_dismissed', '1');
                 setAuthNudgeDismissed(true);
               }} role="button" aria-label={t.close} style={{
-                width: 36, height: 36, borderRadius: 8,
+                width: 44, height: 44, borderRadius: 8,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
               }}>
                 <X size={14} color="var(--text-muted)" />
@@ -236,7 +236,7 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <ArrowRight size={14} color={COLORS.amber} />
               <div onClick={e => { e.stopPropagation(); setEveningDismissed(true); }} role="button" aria-label={t.close} style={{
-                width: 36, height: 36, borderRadius: 8,
+                width: 44, height: 44, borderRadius: 8,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
               }}>
                 <X size={14} color="var(--text-muted)" />
@@ -255,8 +255,8 @@ export default function Home() {
             <Lightbulb size={16} color={COLORS.accent} style={{ flexShrink: 0 }} />
             <span style={{ flex: 1, fontSize: 11, color: 'var(--text-secondary)', marginLeft: 10 }}>
               {weakTopic
-                ? <>{weakTopic.topicIcon} <strong style={{ color: 'var(--text)' }}>{weakTopic.subjectName}</strong> — {weakTopic.topicName} ({weakTopic.pct}%)</>
-                : <>{t.home.recommend} <strong style={{ color: 'var(--text)' }}>{topWeak!.name}</strong> ({topWeak!.avg}%)</>}
+                ? <>{weakTopic.topicIcon} <strong style={{ color: 'var(--text)' }}>{(t.subjects as Record<string, string>)[weakTopic.subjectId] || weakTopic.subjectName}</strong> — {weakTopic.topicName} ({weakTopic.pct}%)</>
+                : <>{t.home.recommend} <strong style={{ color: 'var(--text)' }}>{(t.subjects as Record<string, string>)[topWeak!.id] || topWeak!.name}</strong> ({topWeak!.avg}%)</>}
             </span>
             <ArrowRight size={14} color={COLORS.accent} />
           </button>
