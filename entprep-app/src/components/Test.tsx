@@ -285,7 +285,7 @@ export default function Test({ sid, tid, customQs = null, finish }: TestProps) {
       <Share2 size={16} />{t.test.share}
     </button>
     <button onClick={() => { if (challenge) sessionStorage.removeItem("entprep_challenge"); const qd = qs.map((qq, i) => ({ oi: qq._oi!, ok: ans[i] !== undefined && scoreQuestion(qq, ans[i]).correct, tp: qq._topic, stp: qq._subtopic })); finish({ su: sid, tp: tid || undefined, co: cc, to: tot, sc: pct, dt: new Date().toLocaleDateString("ru-RU"), tm: timerSec - tl, qd }); }} style={{ width: "100%", padding: "15px", marginTop: 8, background: sub.color, color: "#fff", border: "none", borderRadius: 14, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{t.test.goHome}</button>
-    <ShareModal visible={showShare} onClose={() => setShowShare(false)} type="test" data={{ subjectName: sub.name, subjectEmoji: sub.icon, topicName: tid || null, subjectId: sid, topicId: tid, score: cc, total: tot, pct }} />
+    <ShareModal visible={showShare} onClose={() => setShowShare(false)} type="test" data={{ subjectName: (t.subjects as Record<string, string>)[sid] || sub.name, subjectEmoji: sub.icon, topicName: tid || null, subjectId: sid, topicId: tid, score: cc, total: tot, pct }} />
     <ReportSheet visible={reportIdx !== null} questionText={reportIdx !== null ? qs[reportIdx]?.q : undefined} comment={reportComment} loading={reportLoading} onClose={() => { setReportIdx(null); setReportComment(''); }} onCommentChange={setReportComment} onReport={reason => reportQuestion(reportIdx!, reason)} />
   </div>);
 

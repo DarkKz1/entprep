@@ -5,9 +5,10 @@ import { CARD_COMPACT, TYPE, COLORS, scoreColor } from '../constants/styles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useNav } from '../contexts/NavigationContext';
 import { useApp } from '../contexts/AppContext';
-import { getPool } from '../utils/questionStore';
+import { getPool, getPoolSize } from '../utils/questionStore';
 import { assembleProfileSection } from '../utils/questionAssembler';
 import { PROFILE_BLOCKS } from '../config/ent';
+import { useT } from '../locales';
 import BackButton from './ui/BackButton';
 import { ChevronRight, ChevronDown, Play, GraduationCap } from 'lucide-react';
 import type { ProfileSubject, Question } from '../types';
@@ -19,6 +20,7 @@ interface SubjectDetailProps {
 export default function SubjectDetail({ sid }: SubjectDetailProps) {
   const { nav, goHome, setCustomQs, setCurSub, setScreen } = useNav();
   const { hist } = useApp();
+  const t = useT();
   const bp = useBreakpoint();
   const isDesktop = bp === 'desktop';
   const sub = SUBS[sid] || ALL_PROFILES.find(p => p.id === sid);
@@ -27,7 +29,7 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
   const [examLoading, setExamLoading] = useState(false);
   const topics = TOPIC_MAP[sid];
 
-  const [poolSize, setPoolSize] = useState(sub.pool);
+  const [poolSize, setPoolSize] = useState(() => getPoolSize(sid) || sub.pool);
   const [topicCounts, setTopicCounts] = useState<Record<string, number>>({});
   const [subtopicCounts, setSubtopicCounts] = useState<Record<string, number>>({});
   const [hasSubtopics, setHasSubtopics] = useState(false);
@@ -93,10 +95,10 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
       <div style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
         <div style={{ width: 50, height: 50, borderRadius: 15, background: sub.color + "15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{sub.icon}</div>
         <div style={{ marginLeft: 14 }}>
-          <div style={{ ...TYPE.h2, fontSize: 18 }}>{sub.name}</div>
+          <div style={{ ...TYPE.h2, fontSize: 18 }}>{(t.subjects as Record<string, string>)[sid] || sub.name}</div>
           <div style={{ ...TYPE.bodySmall }}>
-            {poolSize} вопросов • {topics.length} разделов
-            {hasSubtopics && totalSubtopics > topics.length && ` • ${totalSubtopics} тем`}
+            {poolSize} {t.questions} • {topics.length} {t.subjectDetail.sections}
+            {hasSubtopics && totalSubtopics > topics.length && ` • ${totalSubtopics} ${t.subjectDetail.topics}`}
           </div>
         </div>
       </div>
@@ -107,8 +109,8 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
           <Play size={18} color={sub.color} />
         </div>
         <div style={{ marginLeft: 12, flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Полный тест</div>
-          <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>{sub.cnt} случайных вопросов из всех тем</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{t.subjectDetail.fullTest}</div>
+          <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>{poolSize} {t.subjectDetail.randomFromAll}</div>
         </div>
         {lastFullSc !== null && <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace", color: scoreColor(lastFullSc), marginRight: 8 }}>{lastFullSc}%</div>}
         <ChevronRight size={18} color={sub.color} />
@@ -121,8 +123,8 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
             <GraduationCap size={18} color="#fff" />
           </div>
           <div style={{ marginLeft: 12, flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Экзамен ЕНТ</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>40 вопросов • 4 типа • 50 баллов</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>{t.subjectDetail.examTitle}</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>{t.subjectDetail.examDesc}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, marginRight: 4 }}>
             <span style={{ fontSize: 9, color: COLORS.teal, fontWeight: 600 }}>25+5+5+5</span>
@@ -133,7 +135,7 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
 
       {/* Topics / Sections */}
       <h3 style={{ ...TYPE.h3, margin: "0 0 12px" }}>
-        {hasSubtopics ? 'Разделы' : 'Темы'}
+        {hasSubtopics ? t.subjectDetail.sectionsTitle : t.subjectDetail.topicsTitle}
       </h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {topics.map(tp => {
@@ -160,9 +162,9 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{tp.name}</div>
                     <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                      {cnt} вопросов
-                      {canExpand && ` • ${subs.length} тем`}
-                      {lastSc !== null && <span style={{ color: scoreColor(lastSc), fontWeight: 600 }}> • Посл: {lastSc}%</span>}
+                      {cnt} {t.questions}
+                      {canExpand && ` • ${subs.length} ${t.subjectDetail.topics}`}
+                      {lastSc !== null && <span style={{ color: scoreColor(lastSc), fontWeight: 600 }}> • {t.subjectDetail.last} {lastSc}%</span>}
                     </div>
                   </div>
                 </div>
@@ -171,7 +173,7 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
                   <button
                     onClick={e => { e.stopPropagation(); nav("test", sid, tp.id); }}
                     style={{ width: 32, height: 32, borderRadius: 8, background: sub.color + "18", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, marginRight: 6, transition: "background 0.2s" }}
-                    title={`Тест: ${tp.name}`}
+                    title={tp.name}
                   >
                     <Play size={14} color={sub.color} />
                   </button>
@@ -214,7 +216,7 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text)" }}>{st.name}</div>
                           <div style={{ fontSize: 10, color: "var(--text-secondary)" }}>
-                            {stCnt > 0 ? `${stCnt} вопросов` : 'нет вопросов'}
+                            {stCnt > 0 ? `${stCnt} ${t.questions}` : t.subjectDetail.noQuestions}
                             {stLastSc !== null && <span style={{ color: scoreColor(stLastSc), fontWeight: 600 }}> • {stLastSc}%</span>}
                           </div>
                         </div>

@@ -471,7 +471,7 @@ export default function Duel() {
                   cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', width: '100%',
                 }}>
                   <span style={{ fontSize: 20, marginRight: 10 }}>{s.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1 }}>{s.name}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1 }}>{(t.subjects as Record<string, string>)[s.id] || s.name}</span>
                   <ChevronRight size={16} color={s.color} />
                 </button>
               ))}

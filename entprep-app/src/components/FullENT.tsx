@@ -76,9 +76,9 @@ export default function FullENT({ finish }: FullENTProps) {
       return sum + (qt === 'multiple' || qt === 'matching' ? 2 : 1);
     }, 0);
     const secs: Section[] = [
-      ...ENT_CONFIG.sections.map((s, i) => ({ ...s, qs: mandatoryQs[i] })),
-      { sid: prof[0], label: p1?.name || prof[0], icon: p1?.icon || "\uD83D\uDD2C", cnt: ENT_CONFIG.profileCnt, maxPts: calcMaxPts(prof0Qs), threshold: ENT_CONFIG.profileThreshold, ptsPerQ: ENT_CONFIG.profilePtsPerQ, qs: prof0Qs },
-      { sid: prof[1], label: p2?.name || prof[1], icon: p2?.icon || "\uD83D\uDCBB", cnt: ENT_CONFIG.profileCnt, maxPts: calcMaxPts(prof1Qs), threshold: ENT_CONFIG.profileThreshold, ptsPerQ: ENT_CONFIG.profilePtsPerQ, qs: prof1Qs },
+      ...ENT_CONFIG.sections.map((s, i) => ({ ...s, label: (t.subjects as Record<string, string>)[s.sid] || s.label, qs: mandatoryQs[i] })),
+      { sid: prof[0], label: (t.subjects as Record<string, string>)[prof[0]] || p1?.name || prof[0], icon: p1?.icon || "\uD83D\uDD2C", cnt: ENT_CONFIG.profileCnt, maxPts: calcMaxPts(prof0Qs), threshold: ENT_CONFIG.profileThreshold, ptsPerQ: ENT_CONFIG.profilePtsPerQ, qs: prof0Qs },
+      { sid: prof[1], label: (t.subjects as Record<string, string>)[prof[1]] || p2?.name || prof[1], icon: p2?.icon || "\uD83D\uDCBB", cnt: ENT_CONFIG.profileCnt, maxPts: calcMaxPts(prof1Qs), threshold: ENT_CONFIG.profileThreshold, ptsPerQ: ENT_CONFIG.profilePtsPerQ, qs: prof1Qs },
     ];
     setSections(secs); setSectionsLoading(false);
   })(); return () => { cancelled = true } }, []); // eslint-disable-line react-hooks/exhaustive-deps
