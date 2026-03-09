@@ -3,15 +3,20 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import PaywallModal from '../PaywallModal';
 
 vi.mock('../../config/payment', () => ({
-  KASPI_ENABLED: true,
-  KASPI_MERCHANT_ID: 'test',
-  KASPI_PAY_URL: 'https://kaspi.kz/pay/test',
   PLANS: { monthly: { amount: 1990 }, yearly: { amount: 4990 } },
-  getKaspiPayUrl: (plan: string) => `https://kaspi.kz/pay/test?amount=${plan === 'monthly' ? 1990 : 4990}`,
+  RC_PRODUCT_IDS: { monthly: 'entprep_monthly', yearly: 'entprep_yearly' },
+}));
+
+vi.mock('../../config/purchases', () => ({
+  isNativePlatform: () => false,
+  getOfferings: async () => null,
+  purchasePackage: async () => false,
+  restorePurchases: async () => false,
 }));
 
 vi.mock('../../locales', () => ({
   useT: () => ({
+    error: 'Ошибка',
     paywall: {
       dailyLimit: 'Лимит тестов',
       fullent: 'Полный ЕНТ',
@@ -25,12 +30,15 @@ vi.mock('../../locales', () => ({
       fullEntSim: 'Приоритетная поддержка',
       monthlyPlan: '1 990 ₸/мес',
       yearlyPlan: '4 990 ₸',
-      yearlyPlanDesc: 'до конца учебного года',
+      yearlyPlanDesc: 'автопродление раз в год',
       monthlyLabel: 'Ежемесячно',
-      yearlyLabel: 'До конца года',
+      yearlyLabel: 'Ежегодно',
       yearlyBadge: 'Выгодно',
-      getPremium: 'Оплатить через Kaspi',
-      alreadyPaid: 'Я уже оплатил',
+      getPremium: 'Подписаться',
+      alreadyPaid: 'Восстановить покупку',
+      noPurchaseFound: 'Подписка не найдена',
+      webOnly: 'Скачать приложение',
+      purchasing: 'Оформление...',
     },
   }),
 }));
@@ -64,33 +72,24 @@ describe('PaywallModal', () => {
     expect(screen.getByText('Приоритетная поддержка')).toBeInTheDocument();
   });
 
-  it('shows two plan options', () => {
+  it('shows two plan options with fallback prices on web', () => {
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
     expect(screen.getByText('1 990 ₸/мес')).toBeInTheDocument();
-    expect(screen.getByText('4 990 ₸')).toBeInTheDocument();
+    expect(screen.getByText('4 990 ₸/год')).toBeInTheDocument();
   });
 
-  it('calls onClose when "already paid" clicked', () => {
+  it('on web: "already paid" button calls onClose', () => {
     const onClose = vi.fn();
     render(<PaywallModal open={true} reason="daily_limit" onClose={onClose} />);
-    fireEvent.click(screen.getByText('Я уже оплатил'));
+    fireEvent.click(screen.getByText('Восстановить покупку'));
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('opens Kaspi link with yearly plan by default', () => {
+  it('on web: CTA opens store link', () => {
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
-    fireEvent.click(screen.getByText(/Оплатить через Kaspi/));
-    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('amount=4990'), '_blank');
-    openSpy.mockRestore();
-  });
-
-  it('switches to monthly plan', () => {
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-    render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
-    fireEvent.click(screen.getByText('Ежемесячно'));
-    fireEvent.click(screen.getByText(/Оплатить через Kaspi/));
-    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('amount=1990'), '_blank');
+    fireEvent.click(screen.getByText(/Скачать приложение/));
+    expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('play.google.com'), '_blank');
     openSpy.mockRestore();
   });
 });

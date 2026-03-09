@@ -34,6 +34,9 @@ export function scoreColor(pct: number): string {
 /** Spacing scale (4px grid) */
 export const SP = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 } as const;
 
+/** Icon size scale */
+export const ICON = { sm: 14, md: 16, lg: 20, xl: 24 } as const;
+
 /** Border radius scale */
 export const R = { sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, pill: 100 } as const;
 

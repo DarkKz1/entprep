@@ -66,8 +66,10 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     } else if (target === 'errors') {
       setScreen(SCREENS.ERROR_REVIEW);
     } else if (target === 'errors_test' && sub) {
-      setCustomQs(sub as unknown as Question[]);
-      setCurSub((sub as unknown as Question[])[0]?._su || 'math');
+      // sub is actually Question[] passed as string — see ErrorReview component
+      const errorQs = sub as unknown as Question[];
+      setCustomQs(errorQs);
+      setCurSub(errorQs[0]?._su || 'math');
       setSelTopic(null);
       setScreen(SCREENS.TEST);
     } else if (target === 'admin') {

@@ -76,7 +76,13 @@ function lsRead(sid: string): SupabaseRow[] | null {
 }
 
 function lsWrite(sid: string, data: SupabaseRow[]): void {
-  try { localStorage.setItem(CACHE_KEY + '_' + sid, JSON.stringify(data)); } catch {}
+  try {
+    localStorage.setItem(CACHE_KEY + '_' + sid, JSON.stringify(data));
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      console.warn('localStorage quota exceeded for', sid);
+    }
+  }
 }
 
 function loadCounts(): Record<string, number> {
@@ -109,11 +115,15 @@ const pending: Partial<Record<string, Promise<Question[]>>> = {};
 async function fetchFromSupabase(sid: string): Promise<SupabaseRow[] | null> {
   if (!supabase) return null;
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const { data, error } = await supabase
       .from('questions')
       .select('idx,topic,subtopic,q,o,c,e,passage_group,passage_title,passage_text,type,correct_indices,pairs,difficulty,block,q_kk,o_kk,e_kk,pairs_kk,passage_title_kk,passage_text_kk')
       .eq('subject', sid)
-      .order('idx', { ascending: true });
+      .order('idx', { ascending: true })
+      .abortSignal(controller.signal);
+    clearTimeout(timeout);
     if (error || !data || data.length === 0) return null;
     return data as SupabaseRow[];
   } catch {

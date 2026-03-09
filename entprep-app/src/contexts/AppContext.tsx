@@ -39,9 +39,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
-  const debouncedCloudSave = useCallback((userId: string, data: { hist: TestResult[]; prof: string[]; st: Settings }) => {
+  const debouncedCloudSave = useCallback((userId: string, _data: { hist: TestResult[]; prof: string[]; st: Settings }) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
+      // Read fresh data from localStorage to avoid stale closure
+      const fresh = loadData();
+      const data = fresh ? { hist: fresh.hist || [], prof: fresh.prof || [], st: fresh.st || _data.st } : _data;
       const result = await cloudSave(userId, data);
       if (!result.ok) setSyncError(result.error ?? null);
       else setSyncError(null);
