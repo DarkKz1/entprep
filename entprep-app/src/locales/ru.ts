@@ -245,6 +245,20 @@ const ru = {
     welcomeDesc: 'Выбери предмет ниже и начни готовиться к ЕНТ',
   },
 
+  // ── Subject Detail ────────────────────────────────────────────────
+  subjectDetail: {
+    fullTest: 'Полный тест',
+    randomFromAll: 'случайных вопросов из всех тем',
+    sections: 'разделов',
+    topics: 'тем',
+    sectionsTitle: 'Разделы',
+    topicsTitle: 'Темы',
+    examTitle: 'Экзамен ЕНТ',
+    examDesc: '40 вопросов • 4 типа • 50 баллов',
+    last: 'Посл:',
+    noQuestions: 'нет вопросов',
+  },
+
   // ── Settings ────────────────────────────────────────────────────────
   settings: {
     title: 'Настройки',
@@ -357,6 +371,12 @@ const ru = {
     option: 'Вариант',
     nextQuestion: 'Следующий →',
     finishTest: 'Завершить тест',
+    // Question type labels
+    multipleAnswers: 'Несколько ответов',
+    selected: 'Выбрано',
+    confirmBtn: 'Подтвердить',
+    matching: 'Соответствие',
+    selectPlaceholder: 'Выберите...',
   },
 
   // ── Full ENT ────────────────────────────────────────────────────────
@@ -694,13 +714,17 @@ const ru = {
     fullEntSim: 'Приоритетная поддержка',
     monthlyPlan: '1 990 \u20B8/мес',
     yearlyPlan: '4 990 \u20B8',
-    yearlyPlanDesc: 'до конца учебного года (30 июня)',
+    yearlyPlanDesc: 'автопродление раз в год',
     monthlyLabel: 'Ежемесячно',
-    yearlyLabel: 'До конца года',
+    yearlyLabel: 'Ежегодно',
     yearlyBadge: 'Выгодно',
     orSeparator: 'или',
-    getPremium: 'Оплатить через Kaspi',
-    alreadyPaid: 'Уже оплатили? Напишите нам',
+    getPremium: 'Подписаться',
+    alreadyPaid: 'Восстановить покупку',
+    noPurchaseFound: 'Подписка не найдена. Если вы покупали — попробуйте позже.',
+    webOnly: 'Скачать приложение',
+    purchasing: 'Оформление...',
+    yearlyPlanAuto: '4 990 \u20B8/год',
   },
 
   // ── Share ──────────────────────────────────────────────────────────

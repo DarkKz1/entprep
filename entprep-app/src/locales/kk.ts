@@ -245,6 +245,20 @@ const kk: Translations = {
     welcomeDesc: 'Төмендегі пәнді таңдап, ҰБТ-ға дайындалыңыз',
   },
 
+  // ── Subject Detail ────────────────────────────────────────────────
+  subjectDetail: {
+    fullTest: 'Толық тест',
+    randomFromAll: 'барлық тақырыптардан кездейсоқ сұрақтар',
+    sections: 'бөлім',
+    topics: 'тақырып',
+    sectionsTitle: 'Бөлімдер',
+    topicsTitle: 'Тақырыптар',
+    examTitle: 'ҰБТ емтиханы',
+    examDesc: '40 сұрақ • 4 түрі • 50 балл',
+    last: 'Соңғы:',
+    noQuestions: 'сұрақ жоқ',
+  },
+
   // ── Settings ────────────────────────────────────────────────────────
   settings: {
     title: 'Баптаулар',
@@ -351,6 +365,11 @@ const kk: Translations = {
     option: 'Нұсқа',
     nextQuestion: 'Келесі →',
     finishTest: 'Тестті аяқтау',
+    multipleAnswers: 'Бірнеше жауап',
+    selected: 'Таңдалды',
+    confirmBtn: 'Растау',
+    matching: 'Сәйкестік',
+    selectPlaceholder: 'Таңдаңыз...',
   },
 
   // ── Full ENT ────────────────────────────────────────────────────────
@@ -681,13 +700,17 @@ const kk: Translations = {
     fullEntSim: 'Басымдықты қолдау',
     monthlyPlan: '1 990 \u20B8/ай',
     yearlyPlan: '4 990 \u20B8',
-    yearlyPlanDesc: 'оқу жылы соңына дейін (30 маусым)',
+    yearlyPlanDesc: 'жылына бір рет автоұзарту',
     monthlyLabel: 'Ай сайын',
-    yearlyLabel: 'Жыл соңына дейін',
+    yearlyLabel: 'Жыл сайын',
     yearlyBadge: 'Тиімді',
     orSeparator: 'немесе',
-    getPremium: 'Kaspi арқылы төлеу',
-    alreadyPaid: 'Төлеп қойдыңыз ба? Бізге жазыңыз',
+    getPremium: 'Жазылу',
+    alreadyPaid: 'Сатып алуды қалпына келтіру',
+    noPurchaseFound: 'Жазылым табылмады. Сатып алған болсаңыз — кейінірек қайталаңыз.',
+    webOnly: 'Қосымшаны жүктеу',
+    purchasing: 'Рәсімдеу...',
+    yearlyPlanAuto: '4 990 \u20B8/жыл',
   },
 
   // ── Share ──────────────────────────────────────────────────────────
