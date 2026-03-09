@@ -10,12 +10,12 @@ export default async function handler(req) {
   if (req.method !== "POST")
     return Response.json({ error: "Method not allowed" }, { status: 405, headers: CORS_HEADERS });
 
-  const rl = checkRate(req);
-  if (rl) return rateLimitResponse(rl);
-
   const user = await verifyAuth(req);
   if (!user)
     return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS_HEADERS });
+
+  const rl = checkRate(user.id);
+  if (rl) return rateLimitResponse(rl);
 
   let body;
   try { body = await req.json(); } catch {

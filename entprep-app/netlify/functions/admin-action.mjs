@@ -63,7 +63,7 @@ export default async function handler(req) {
   // Auth check
   const user = await verifyAuth(req);
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS_HEADERS });
-  if (!ADMIN_EMAILS.includes(user.email)) {
+  if (!ADMIN_EMAILS.map(e => e.toLowerCase()).includes((user.email || '').toLowerCase())) {
     return Response.json({ error: "Forbidden" }, { status: 403, headers: CORS_HEADERS });
   }
 
@@ -73,6 +73,17 @@ export default async function handler(req) {
   }
 
   const { action } = body;
+
+  // Audit log helper
+  const logAudit = async (details) => {
+    try {
+      await fetch(`${SB_URL}/rest/v1/audit_logs`, {
+        method: "POST",
+        headers: sbHeaders,
+        body: JSON.stringify({ admin_id: user.id, admin_email: user.email, action, details: JSON.stringify(details) }),
+      });
+    } catch (e) { console.warn("Audit log failed:", e.message); }
+  };
 
   try {
     switch (action) {
@@ -92,6 +103,7 @@ export default async function handler(req) {
         }
 
         await sbUpdate("questions", `id=eq.${id}`, { q, o, c, e });
+        await logAudit({ id, q: q?.slice(0, 80) });
         return Response.json({ ok: true }, { headers: CORS_HEADERS });
       }
 
@@ -99,6 +111,7 @@ export default async function handler(req) {
         const { id } = body;
         if (!id) return Response.json({ error: "Missing id" }, { status: 400, headers: CORS_HEADERS });
         await sbDelete("questions", `id=eq.${id}`);
+        await logAudit({ id });
         return Response.json({ ok: true }, { headers: CORS_HEADERS });
       }
 
@@ -107,6 +120,7 @@ export default async function handler(req) {
         if (!question_id) return Response.json({ error: "Missing question_id" }, { status: 400, headers: CORS_HEADERS });
         await sbDelete("question_reports", `question_id=eq.${question_id}`);
         await sbUpdate("questions", `id=eq.${question_id}`, { report_count: 0 });
+        await logAudit({ question_id });
         return Response.json({ ok: true }, { headers: CORS_HEADERS });
       }
 
@@ -146,6 +160,7 @@ export default async function handler(req) {
         const row = { subject, topic, q, o, c, e };
         if (body.q_kk) { row.q_kk = body.q_kk; row.o_kk = body.o_kk; row.e_kk = body.e_kk; }
         await sbInsert("questions", row);
+        await logAudit({ subject, q: q.slice(0, 80) });
         return Response.json({ ok: true }, { headers: CORS_HEADERS });
       }
 
@@ -182,6 +197,7 @@ export default async function handler(req) {
           kaspiTxId: "manual",
         });
 
+        await logAudit({ email, plan: premiumPlan, premium_until: premiumUntil });
         return Response.json({ ok: true, premium_until: premiumUntil }, { headers: CORS_HEADERS });
       }
 

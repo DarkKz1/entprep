@@ -18,7 +18,7 @@ export default async function handler(req) {
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401, headers: CORS_HEADERS });
 
   // Admin-only
-  if (!ADMIN_EMAILS.includes(user.email)) return Response.json({ error: "Forbidden" }, { status: 403, headers: CORS_HEADERS });
+  if (!ADMIN_EMAILS.map(e => e.toLowerCase()).includes((user.email || '').toLowerCase())) return Response.json({ error: "Forbidden" }, { status: 403, headers: CORS_HEADERS });
 
   // Rate limit
   const retryAfter = checkRate(user.id);

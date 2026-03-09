@@ -194,6 +194,10 @@ export default async function handler(req) {
         if (qIds.length === 0) {
           return Response.json({ error: "Дуэль повреждена: нет вопросов" }, { status: 500, headers: CORS_HEADERS });
         }
+        // S4: Validate all question IDs are integers
+        if (!qIds.every(id => Number.isInteger(id))) {
+          return Response.json({ error: "Invalid question IDs" }, { status: 400, headers: CORS_HEADERS });
+        }
         console.log("join_duel: fetching questions", { duel_id: duel.id, subject: duel.subject, qIds });
         const questions = await sbGet(
           "questions",
@@ -202,6 +206,11 @@ export default async function handler(req) {
         // Sort to match creator's original order
         const qMap = new Map(questions.map(q => [q.idx, q]));
         const ordered = qIds.map(idx => qMap.get(idx)).filter(Boolean);
+        // S5: Validate all questions were found
+        if (ordered.length !== qIds.length) {
+          console.error("join_duel: question count mismatch", { expected: qIds.length, got: ordered.length });
+          return Response.json({ error: "Дуэль повреждена: вопросы не найдены" }, { status: 500, headers: CORS_HEADERS });
+        }
         console.log("join_duel: got", ordered.length, "of", qIds.length, "questions");
 
         // Fetch both profiles

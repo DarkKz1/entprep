@@ -1,7 +1,9 @@
 // Leaderboard: submit scores + fetch rankings
 // Uses service key to bypass RLS
 
-import { CORS_HEADERS, corsResponse, verifyAuth } from "./utils/shared.mjs";
+import { CORS_HEADERS, corsResponse, verifyAuth, createRateLimiter, rateLimitResponse } from "./utils/shared.mjs";
+
+const checkRate = createRateLimiter("leaderboard", { max: 10, windowSec: 60 });
 
 function getSbConfig() {
   return {
@@ -98,10 +100,30 @@ export default async function handler(req) {
       return Response.json({ error: "Invalid JSON" }, { status: 400, headers: CORS_HEADERS });
     }
 
-    const { subject, score } = body;
+    // Rate limit per user
+    const rl = checkRate(user.id);
+    if (rl) return rateLimitResponse(rl);
+
+    const { subject, score, questionCount } = body;
     if (!subject || typeof score !== "number" || score < 0 || score > 100) {
       return Response.json({ error: "Invalid data" }, { status: 400, headers: CORS_HEADERS });
     }
+    // Basic sanity: score must be integer
+    if (!Number.isInteger(score)) {
+      return Response.json({ error: "Invalid score" }, { status: 400, headers: CORS_HEADERS });
+    }
+    // Prevent rapid duplicate submissions (same user+subject+score within 30s)
+    try {
+      const since = new Date(Date.now() - 30000).toISOString();
+      const dupRes = await fetch(
+        `${SB_URL}/rest/v1/leaderboard?user_id=eq.${user.id}&subject=eq.${encodeURIComponent(subject)}&score=eq.${score}&created_at=gte.${since}&limit=1`,
+        { headers: authHeaders }
+      );
+      if (dupRes.ok) {
+        const dups = await dupRes.json();
+        if (dups.length > 0) return Response.json({ ok: true, duplicate: true }, { headers: CORS_HEADERS });
+      }
+    } catch {}
 
     // Prefer nickname from profiles, fall back to Google name
     let userName = user.user_metadata?.full_name || user.email || "Anonymous";
