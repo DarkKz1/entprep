@@ -25,7 +25,7 @@ export default function Auth({ user, onSignOut }: AuthProps) {
   const signInWith = async (provider: 'google' | 'apple') => {
     await supabase!.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: window.location.origin }
+      options: { redirectTo: 'https://entprep.netlify.app' }
     });
   };
 

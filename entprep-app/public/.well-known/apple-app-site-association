@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["85MH8SWD4T.kz.entprep.app"],
+        "paths": ["/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["85MH8SWD4T.kz.entprep.app"]
+  }
+}

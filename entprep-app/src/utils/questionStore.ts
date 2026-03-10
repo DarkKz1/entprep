@@ -103,9 +103,9 @@ function saveCounts(counts: Record<string, number>): void {
 
 function getDefaultCounts(): Record<string, number> {
   return {
-    math:150, reading:150, history:150, geography:150, english:150,
-    math_profile:150, physics:150, biology:150, chemistry:150,
-    world_history:150, informatics:150, law:150, literature:150,
+    math:2172, reading:2025, history:2562, geography:2139, english:2036,
+    math_profile:2180, physics:2100, biology:2054, chemistry:2053,
+    world_history:2566, informatics:2048, law:2106, literature:2552,
   };
 }
 
@@ -122,6 +122,7 @@ async function fetchFromSupabase(sid: string): Promise<SupabaseRow[] | null> {
       .select('idx,topic,subtopic,q,o,c,e,passage_group,passage_title,passage_text,type,correct_indices,pairs,difficulty,block,q_kk,o_kk,e_kk,pairs_kk,passage_title_kk,passage_text_kk')
       .eq('subject', sid)
       .order('idx', { ascending: true })
+      .limit(5000)
       .abortSignal(controller.signal);
     clearTimeout(timeout);
     if (error || !data || data.length === 0) return null;

@@ -48,6 +48,12 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
+# Apple App Site Association (Universal Links) — must be served as JSON
+[[headers]]
+  for = "/.well-known/apple-app-site-association"
+  [headers.values]
+    Content-Type = "application/json"
+
 # SPA fallback — all non-file routes serve index.html
 [[redirects]]
   from = "/*"
