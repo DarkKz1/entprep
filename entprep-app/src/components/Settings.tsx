@@ -3,7 +3,7 @@ import { getPoolSize, getTotalQ } from '../utils/questionStore';
 import { UNIS } from '../data/universities';
 import { supabase } from '../config/supabase';
 import Auth from './Auth';
-import { CARD_COMPACT, COLORS } from '../constants/styles';
+import { CARD_COMPACT, COLORS, SECTION_LABEL, TINT } from '../constants/styles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useApp } from '../contexts/AppContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,11 +21,7 @@ import { isPushSupported, getPushPermission, subscribeToPush, unsubscribeFromPus
 function Section({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 28 }}>
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-        textTransform: 'uppercase' as const, letterSpacing: 1.2,
-        marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6,
-      }}>
+      <div style={{ ...SECTION_LABEL, display: 'flex', alignItems: 'center', gap: 6 }}>
         {icon}{label}
       </div>
       <div style={{
@@ -58,6 +54,8 @@ export default function Settings() {
   const bp = useBreakpoint();
   const isDesktop = bp === 'desktop';
   const [cf, setCf] = useState(false);
+  const [cfSignOut, setCfSignOut] = useState(false);
+  const [cfResetProfile, setCfResetProfile] = useState(false);
   const [editGoal, setEditGoal] = useState(false);
   const [editNick, setEditNick] = useState(false);
   const [nickInput, setNickInput] = useState('');
@@ -67,8 +65,8 @@ export default function Settings() {
   const [goalTarget, setGoalTarget] = useState(() => st.goal?.target || 100);
   const [goalDate, setGoalDate] = useState(() => st.goal?.date || '');
   const goalProg = getGoalProgress(hist, st.goal);
-  const handleSignOut = async () => { if (supabase) await supabase.auth.signOut() };
-  const handleResetProfile = () => { resetProfile(); setScreen('profile'); setTab('home'); };
+  const handleSignOut = async () => { if (supabase) await supabase.auth.signOut(); setCfSignOut(false); };
+  const handleResetProfile = () => { resetProfile(); setScreen('profile'); setTab('home'); setCfResetProfile(false); };
   const lang = st.lang || 'ru';
 
   return (
@@ -83,8 +81,17 @@ export default function Settings() {
       <Section icon={<User size={11} />} label={t.settings.sectionAccount || 'Account'}>
         {/* Auth row */}
         <div style={ROW}>
-          <Auth user={user} onSignOut={handleSignOut} />
+          <Auth user={user} onSignOut={() => setCfSignOut(true)} />
         </div>
+        {cfSignOut && (
+          <div style={ROW}>
+            <div style={{ fontSize: 12, color: COLORS.red, fontWeight: 600, marginBottom: 8 }}>{t.settings.signOutConfirm}</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleSignOut} style={{ flex: 1, padding: '10px', background: COLORS.red, border: 'none', borderRadius: 10, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{t.yes}</button>
+              <button onClick={() => setCfSignOut(false)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--border-md)', borderRadius: 10, color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer' }}>{t.cancel}</button>
+            </div>
+          </div>
+        )}
 
         {/* Premium status */}
         {isPremium ? (
@@ -106,9 +113,9 @@ export default function Settings() {
             </div>
           </div>
         ) : (
-          <button onClick={() => openPaywall('daily_limit')} style={{ ...ROW, width: '100%', background: 'linear-gradient(135deg, rgba(255,107,53,0.04), rgba(26,154,140,0.04))', cursor: 'pointer', textAlign: 'left', border: 'none', borderBottom: '1px solid var(--border-light)', transition: 'all 0.2s' }}>
+          <button onClick={() => openPaywall('upgrade')} style={{ ...ROW, width: '100%', background: 'linear-gradient(135deg, rgba(255,107,53,0.04), rgba(26,154,140,0.04))', cursor: 'pointer', textAlign: 'left', border: 'none', borderBottom: '1px solid var(--border-light)', transition: 'all 0.2s' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,107,53,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: TINT.accent.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Crown size={18} color={COLORS.accent} />
               </div>
               <div style={{ flex: 1 }}>
@@ -181,7 +188,10 @@ export default function Settings() {
                   </button>
                 </div>
                 {nickError && <div style={{ fontSize: 11, color: COLORS.red }}>{nickError}</div>}
-                <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>{t.settings.nickHint}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t.settings.nickHint}</div>
+                  <div style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: nickInput.length >= 18 ? COLORS.yellow : 'var(--text-muted)' }}>{nickInput.length}/20</div>
+                </div>
               </div>
             )}
           </div>
@@ -346,9 +356,19 @@ export default function Settings() {
         </div>
 
         {/* Change profile */}
-        <button onClick={handleResetProfile} style={{ ...ROW_LAST, width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.teal, fontSize: 13, fontWeight: 600 }}>
-          <Target size={15} />{t.settings.changeProfile}
-        </button>
+        {!cfResetProfile ? (
+          <button onClick={() => setCfResetProfile(true)} style={{ ...ROW_LAST, width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8, color: COLORS.teal, fontSize: 13, fontWeight: 600 }}>
+            <Target size={15} />{t.settings.changeProfile}
+          </button>
+        ) : (
+          <div style={ROW_LAST}>
+            <div style={{ fontSize: 12, color: COLORS.yellow, fontWeight: 600, marginBottom: 8 }}>{t.settings.resetProfileConfirm}</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleResetProfile} style={{ flex: 1, padding: '10px', background: COLORS.yellow, border: 'none', borderRadius: 10, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>{t.yes}</button>
+              <button onClick={() => setCfResetProfile(false)} style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid var(--border-md)', borderRadius: 10, color: 'var(--text-secondary)', fontSize: 11, cursor: 'pointer' }}>{t.cancel}</button>
+            </div>
+          </div>
+        )}
       </Section>
 
       {/* ════════ DATA ════════ */}

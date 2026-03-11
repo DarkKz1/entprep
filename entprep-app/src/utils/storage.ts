@@ -1,4 +1,4 @@
-import type { UserData } from '../types/index';
+import type { UserData, SRCard } from '../types/index';
 
 const STORAGE_KEY = 'entprep_data';
 
@@ -21,4 +21,8 @@ function saveData(d: UserData): boolean {
   }
 }
 
-export { loadData, saveData };
+function loadSrCards(): SRCard[] {
+  return loadData()?.srCards || [];
+}
+
+export { loadData, saveData, loadSrCards };

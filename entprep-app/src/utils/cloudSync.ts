@@ -1,13 +1,15 @@
 import { supabase } from '../config/supabase';
-import type { TestResult, Settings } from '../types/index';
+import type { TestResult, Settings, SRCard } from '../types/index';
 import { syncProfileStats } from './socialHelpers';
 import { calcTotalXP, getLevel } from './xpHelpers';
 import { calcStreak } from './adaptiveHelpers';
+import { mergeSrCards } from './srEngine';
 
 interface CloudData {
   hist: TestResult[];
   prof: string[];
   st: Settings;
+  srCards?: SRCard[];
 }
 
 export async function cloudLoad(userId: string): Promise<CloudData | null> {
@@ -19,14 +21,21 @@ export async function cloudLoad(userId: string): Promise<CloudData | null> {
     .single();
   if (error && error.code === 'PGRST116') return null;
   if (error) { console.error('cloudLoad:', error); return null; }
-  return data as CloudData;
+  const raw = data as { hist: TestResult[]; prof: string[]; st: Settings & { srCards?: SRCard[] } };
+  // Unpack srCards from st field
+  const srCards = raw.st?.srCards || [];
+  const st = { ...raw.st };
+  delete (st as Record<string, unknown>).srCards;
+  return { hist: raw.hist, prof: raw.prof, st, srCards };
 }
 
-export async function cloudSave(userId: string, { hist, prof, st }: CloudData): Promise<{ ok: boolean; error?: string }> {
+export async function cloudSave(userId: string, { hist, prof, st, srCards }: CloudData): Promise<{ ok: boolean; error?: string }> {
   if (!supabase) return { ok: false, error: 'no supabase' };
+  // Pack srCards into st field to avoid schema changes
+  const stWithSr = srCards && srCards.length > 0 ? { ...st, srCards } : st;
   const { error } = await supabase
     .from('user_data')
-    .upsert({ id: userId, hist, prof, st, updated_at: new Date().toISOString() });
+    .upsert({ id: userId, hist, prof, st: stWithSr, updated_at: new Date().toISOString() });
   if (error) { console.error('cloudSave:', error); return { ok: false, error: error.message }; }
 
   // Also sync XP/level/streak/avatar to profiles table (fire-and-forget)
@@ -56,5 +65,6 @@ export function mergeData(local: CloudData | null, cloud: CloudData | null): Clo
   if (!st.exp && st.exp !== false) st.exp = true;
   if (!st.tmr && st.tmr !== false) st.tmr = true;
   if (!st.shf && st.shf !== false) st.shf = true;
-  return { hist, prof, st };
+  const srCards = mergeSrCards(local.srCards || [], cloud.srCards || []);
+  return { hist, prof, st, srCards };
 }

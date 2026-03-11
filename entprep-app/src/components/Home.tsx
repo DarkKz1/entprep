@@ -3,7 +3,8 @@ import { ALL_PROFILES, SUBS, TOTAL_Q } from '../config/questionPools';
 import { getRecommendations, calcStreak, getTopWeakTopic } from '../utils/adaptiveHelpers';
 import { getDailyChallenge, getPersonalBests, getGoalProgress } from '../utils/competitionHelpers';
 import { getEntCountdown } from '../config/ent';
-import { CARD_COMPACT, COLORS } from '../constants/styles';
+import { getDueCount } from '../utils/srEngine';
+import { CARD_COMPACT, COLORS, TINT } from '../constants/styles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useNav } from '../contexts/NavigationContext';
 import { useApp } from '../contexts/AppContext';
@@ -40,7 +41,7 @@ function Stagger({ index, children }: { index: number; children: React.ReactNode
 
 export default function Home() {
   const { nav } = useNav();
-  const { hist, prof, st, updSt } = useApp();
+  const { hist, prof, st, srCards, updSt } = useApp();
   const { user, isPremium } = useAuth();
   const bp = useBreakpoint();
   const t = useT();
@@ -101,6 +102,7 @@ export default function Home() {
   const dailyGoal = st.dailyGoal || 3;
   const dailyProgress = Math.min(todayTestCount, dailyGoal);
   const dailyDone = dailyProgress >= dailyGoal;
+  const srDueCount = getDueCount(srCards);
 
   // Auto-save freeze date when freeze activates
   useEffect(() => {
@@ -134,6 +136,7 @@ export default function Home() {
         <HomeHeaderBar
           streak={streak}
           todayXP={todayXP}
+          practicedToday={todayTestCount > 0}
         />
       </Stagger>
 
@@ -143,8 +146,8 @@ export default function Home() {
           {hist.length === 0 && (
             <div style={{
               ...CARD_COMPACT,
-              background: 'rgba(26,154,140,0.06)',
-              border: '1px solid rgba(26,154,140,0.15)',
+              background: TINT.teal.bgLight,
+              border: `1px solid ${TINT.teal.borderLight}`,
               padding: '14px 16px',
               marginBottom: countdown ? 12 : 0,
               display: 'flex', alignItems: 'center', gap: 12,
@@ -174,6 +177,7 @@ export default function Home() {
           dailyProgress={dailyProgress}
           dailyDone={dailyDone}
           daily={daily}
+          srDueCount={srDueCount}
         />
       </Stagger>
 
@@ -198,7 +202,7 @@ export default function Home() {
         {showAuthNudge && (
           <button onClick={() => nav('settings')} style={{
             ...CARD_COMPACT, display: 'flex', alignItems: 'center', width: '100%',
-            background: 'rgba(26,154,140,0.06)', border: '1px solid rgba(26,154,140,0.15)',
+            background: TINT.teal.bgLight, border: `1px solid ${TINT.teal.borderLight}`,
             padding: '10px 14px', marginBottom: 8, cursor: 'pointer', textAlign: 'left',
             transition: 'all 0.2s',
           }}>
@@ -225,7 +229,7 @@ export default function Home() {
         {showEveningBanner && (
           <button onClick={() => nav('errors')} style={{
             ...CARD_COMPACT, display: 'flex', alignItems: 'center', width: '100%',
-            background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)',
+            background: TINT.amber.bgLight, border: `1px solid ${TINT.amber.borderLight}`,
             padding: '10px 14px', marginBottom: 8, cursor: 'pointer', textAlign: 'left',
             transition: 'all 0.2s',
           }}>
@@ -248,7 +252,7 @@ export default function Home() {
         {(weakTopic || topWeak) && (
           <button onClick={() => weakTopic ? nav('test', weakTopic.subjectId, weakTopic.topicId) : nav('adaptive')} style={{
             ...CARD_COMPACT, display: 'flex', alignItems: 'center', width: '100%',
-            background: 'rgba(255,107,53,0.06)', border: '1px solid rgba(255,107,53,0.15)',
+            background: TINT.accent.bgLight, border: `1px solid ${TINT.accent.borderLight}`,
             padding: '10px 14px', marginBottom: 8, cursor: 'pointer', textAlign: 'left',
             transition: 'all 0.2s',
           }}>

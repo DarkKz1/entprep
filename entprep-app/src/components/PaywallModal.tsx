@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import BottomSheet from './ui/BottomSheet';
-import { Crown, Sparkles, Bot, GraduationCap, Headphones, RotateCcw, Loader2 } from 'lucide-react';
+import { Crown, Sparkles, Bot, GraduationCap, BookOpen, RotateCcw, Loader2 } from 'lucide-react';
 import { COLORS } from '../constants/styles';
 import { useT } from '../locales';
 import type { PaywallReason } from '../types';
@@ -19,8 +19,9 @@ interface PaywallModalProps {
   onClose: () => void;
 }
 
-const BENEFIT_ICONS = [Bot, Sparkles, GraduationCap, Headphones];
+const BENEFIT_ICONS = [Bot, Sparkles, GraduationCap, BookOpen];
 const BENEFIT_COLORS = [COLORS.teal, COLORS.cyan, COLORS.teal, COLORS.accent];
+
 
 const STORE_LINKS = {
   android: 'https://play.google.com/store/apps/details?id=kz.entprep.app',
@@ -35,49 +36,6 @@ export default function PaywallModal({ open, reason, onClose }: PaywallModalProp
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState('');
   const isNative = isNativePlatform();
-
-  // Fetch offerings on open (native only)
-  useEffect(() => {
-    if (!open || !isNative) return;
-    setLoading(true);
-    setError('');
-    getOfferings()
-      .then(offering => {
-        if (!offering) return;
-        const pkgs: typeof packages = {};
-        for (const pkg of offering.availablePackages) {
-          if (pkg.identifier === '$rc_monthly') pkgs.monthly = pkg;
-          else if (pkg.identifier === '$rc_annual') pkgs.yearly = pkg;
-        }
-        setPackages(pkgs);
-      })
-      .catch(() => setError(t.error))
-      .finally(() => setLoading(false));
-  }, [open, isNative, t.error]);
-
-  if (!reason) return null;
-
-  const titles: Record<string, string> = {
-    daily_limit: t.paywall.dailyLimit,
-    fullent: t.paywall.fullent,
-    ai: t.paywall.ai,
-  };
-
-  const descs: Record<string, string> = {
-    daily_limit: t.paywall.dailyLimitDesc,
-    fullent: t.paywall.fullentDesc,
-    ai: t.paywall.aiDesc,
-  };
-
-  const benefitLabels = [
-    t.paywall.unlimitedAI,
-    t.paywall.aiErrors,
-    t.paywall.aiPlan,
-    t.paywall.fullEntSim,
-  ];
-
-  const monthlyPrice = packages.monthly?.product?.priceString || '1 990 \u20B8/мес';
-  const yearlyPrice = packages.yearly?.product?.priceString || '4 990 \u20B8/год';
 
   const handlePay = useCallback(async () => {
     if (!isNative) {
@@ -128,6 +86,53 @@ export default function PaywallModal({ open, reason, onClose }: PaywallModalProp
       setPurchasing(false);
     }
   }, [isNative, onClose, t.paywall.noPurchaseFound, t.error]);
+
+  // Fetch offerings on open (native only)
+  useEffect(() => {
+    if (!open || !isNative) return;
+    setLoading(true);
+    setError('');
+    getOfferings()
+      .then(offering => {
+        if (!offering) return;
+        const pkgs: typeof packages = {};
+        for (const pkg of offering.availablePackages) {
+          if (pkg.identifier === '$rc_monthly') pkgs.monthly = pkg;
+          else if (pkg.identifier === '$rc_annual') pkgs.yearly = pkg;
+        }
+        setPackages(pkgs);
+      })
+      .catch(() => { setError(t.error); })
+      .finally(() => setLoading(false));
+  }, [open, isNative, t.error]);
+
+  if (!reason) return null;
+
+  const pw = t.paywall as Record<string, string>;
+
+  const titles: Record<string, string> = {
+    daily_limit: pw.dailyLimit,
+    fullent: pw.fullentTitle || pw.fullent,
+    ai: pw.ai,
+    upgrade: pw.upgradeTitle || 'ENTprep Premium',
+  };
+
+  const descs: Record<string, string> = {
+    daily_limit: pw.freeUsesUp || pw.dailyLimitDesc,
+    fullent: pw.fullentUnlock || pw.fullentDesc,
+    ai: pw.aiDesc,
+    upgrade: pw.upgradeDesc || pw.dailyLimitDesc,
+  };
+
+  const benefitLabels = [
+    t.paywall.unlimitedAI,
+    t.paywall.aiErrors,
+    t.paywall.aiPlan,
+    t.paywall.fullEntSim,
+  ];
+
+  const monthlyPrice = packages.monthly?.product?.priceString || '1 990 \u20B8/мес';
+  const yearlyPrice = packages.yearly?.product?.priceString || '9 990 \u20B8/год';
 
   return (
     <BottomSheet visible={open} onClose={onClose}>

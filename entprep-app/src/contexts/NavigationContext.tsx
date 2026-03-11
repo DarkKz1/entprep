@@ -18,6 +18,8 @@ interface NavigationContextValue {
   challengeData: ChallengeData | null;
   paywallReason: PaywallReason;
   nav: (target: string, sub?: string | null, topic?: string | null) => void;
+  navToErrorTest: (questions: Question[]) => void;
+  navToReview: () => void;
   goHome: () => void;
   changeTab: (t: string) => void;
   goBack: (fallback?: string) => void;
@@ -65,13 +67,6 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       setTab(SCREENS.ADAPTIVE);
     } else if (target === 'errors') {
       setScreen(SCREENS.ERROR_REVIEW);
-    } else if (target === 'errors_test' && sub) {
-      // sub is actually Question[] passed as string — see ErrorReview component
-      const errorQs = sub as unknown as Question[];
-      setCustomQs(errorQs);
-      setCurSub(errorQs[0]?._su || 'math');
-      setSelTopic(null);
-      setScreen(SCREENS.TEST);
     } else if (target === 'admin') {
       setScreen(SCREENS.ADMIN);
     } else if (target === 'leaderboard') {
@@ -80,9 +75,22 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       setScreen(SCREENS.FRIENDS);
     } else if (target === 'duel') {
       setScreen(SCREENS.DUEL);
+    } else if (target === 'review') {
+      setScreen(SCREENS.REVIEW);
     } else {
       setScreen(SCREENS.HOME);
     }
+  }, []);
+
+  const navToErrorTest = useCallback((questions: Question[]) => {
+    setCustomQs(questions);
+    setCurSub(questions[0]?._su || 'math');
+    setSelTopic(null);
+    setScreen(SCREENS.TEST);
+  }, []);
+
+  const navToReview = useCallback(() => {
+    setScreen(SCREENS.REVIEW);
   }, []);
 
   const goHome = useCallback(() => {
@@ -116,10 +124,10 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       tab, setTab,
       challengeData,
       paywallReason,
-      nav, goHome, changeTab, goBack,
+      nav, navToErrorTest, navToReview, goHome, changeTab, goBack,
       closePaywall, openPaywall,
     }),
-    [screen, curSub, selTopic, customQs, tab, challengeData, paywallReason, nav, goHome, changeTab, goBack, closePaywall, openPaywall],
+    [screen, curSub, selTopic, customQs, tab, challengeData, paywallReason, nav, navToErrorTest, navToReview, goHome, changeTab, goBack, closePaywall, openPaywall],
   );
 
   return (

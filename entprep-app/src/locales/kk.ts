@@ -243,6 +243,7 @@ const kk: Translations = {
     social: 'Әлеуметтік',
     welcomeTitle: 'Қош келдіңіз!',
     welcomeDesc: 'Төмендегі пәнді таңдап, ҰБТ-ға дайындалыңыз',
+    freezeActive: 'Тоңдыру белсенді',
   },
 
   // ── Subject Detail ────────────────────────────────────────────────
@@ -313,6 +314,9 @@ const kk: Translations = {
     textsCount: 'мәтін',
     unisFormat: 'ЖОО • ҰБТ форматы 2025/2026 • 140 балл макс.',
     privacy: 'Құпиялылық саясаты',
+    signOutConfirm: 'Аккаунттан шығу?',
+    signOutConfirmDesc: 'Деректер жергілікті сақталған, бірақ синхрондау тоқтайды.',
+    resetProfileConfirm: 'Бейіндік пәндерді қалпына келтіру?',
   },
 
   // ── Test ─────────────────────────────────────────────────────────────
@@ -370,6 +374,10 @@ const kk: Translations = {
     confirmBtn: 'Растау',
     matching: 'Сәйкестік',
     selectPlaceholder: 'Таңдаңыз...',
+    pointsShort: 'б.',
+    connectionLost: 'Байланыс үзілді',
+    timerPaused: 'Таймер кідіртілді. Прогресс сақталды.',
+    connectionRestored: 'Байланыс қалпына келді',
   },
 
   // ── Full ENT ────────────────────────────────────────────────────────
@@ -610,6 +618,9 @@ const kk: Translations = {
     startPrep: 'Дайындықты бастау',
     nextSlide: 'Келесі слайд',
     start: 'Бастау',
+    tryFirst: 'Алғашқы тестіңді қолданып көр!',
+    profileSlideTitle: 'Бейініңді таңда',
+    profileSlideDesc: 'Бұл қандай пәндерді дайындайтыныңды анықтайды',
   },
 
   // ── Leaderboard ─────────────────────────────────────────────────────
@@ -694,10 +705,19 @@ const kk: Translations = {
     dailyLimitDesc: 'Күніне 3 AI-талдау тегін. Шексіз қолжетімділік үшін Premium алыңыз.',
     fullentDesc: 'Толық ҰБТ симуляциясы (120 тапсырма, 4 сағат) Premium-мен қолжетімді.',
     aiDesc: 'AI-талдау және дайындық жоспары Premium-мен қолжетімді.',
-    unlimitedAI: 'Шексіз AI қателерді талдау',
-    aiErrors: '7 күндік AI-дайындық жоспары',
-    aiPlan: 'Толық ҰБТ симуляциясы',
-    fullEntSim: 'Басымдықты қолдау',
+    unlimitedAI: 'Әр қатені AI-репетитормен талда',
+    aiErrors: 'ҰБТ-ға жеке дайындық жоспары',
+    aiPlan: 'Толық ҰБТ симуляциясы шектеусіз',
+    fullEntSim: 'Әр сұрақтың түсіндірмесімен талдау',
+    socialProof: '12 000+ оқушы ENTprep-пен дайындалады',
+    entCountdown: 'ҰБТ-ға дейін',
+    entCountdownDays: 'күн',
+    freeUsesUp: 'Тегін AI-түсіндірмелер пайдаланылды',
+    freeEntUsed: 'Тегін симуляция пайдаланылды',
+    fullentTitle: 'Толық ҰБТ',
+    fullentUnlock: 'Premium-ге жазылыңыз және толық ҰБТ симуляциясында жаттығыңыз — 120 тапсырма, 5 пән, 4 сағат.',
+    upgradeTitle: 'ENTprep Premium',
+    upgradeDesc: 'Шексіз AI-талдау, толық ҰБТ симуляциясы және жеке дайындық жоспары.',
     monthlyPlan: '1 990 \u20B8/ай',
     yearlyPlan: '4 990 \u20B8',
     yearlyPlanDesc: 'жылына бір рет автоұзарту',
@@ -758,6 +778,23 @@ const kk: Translations = {
     promptEnable: 'Қосу',
     syncFailed: 'Баптау серверде сақталмады',
     later: 'Кейінірек',
+  },
+
+  // ── Spaced Repetition ──────────────────────────────────────────────
+  review: {
+    title: 'Қайталау',
+    due: 'қайталау',
+    nextIn: 'Келесі қайталау',
+    days: 'күн',
+    tomorrow: 'ертең',
+    done: 'Барлық қайталаулар орындалды!',
+    correct: 'дұрыс',
+    needMore: 'қайталау керек',
+    summary: 'Қайталау нәтижесі',
+    reviewed: 'Қайталанды',
+    quit: 'Аяқтау',
+    nextReview: 'Кел. қайталау:',
+    inDays: 'кейін',
   },
 
   // ── Error Boundary ─────────────────────────────────────────────────

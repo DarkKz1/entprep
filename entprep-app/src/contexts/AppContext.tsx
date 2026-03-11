@@ -2,12 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { loadData, saveData } from '../utils/storage';
 import { cloudLoad, cloudSave, mergeData } from '../utils/cloudSync';
 import { useAuth } from './AuthContext';
-import type { TestResult, Settings, GoalSettings } from '../types/index';
+import { addWrongAnswers } from '../utils/srEngine';
+import type { TestResult, Settings, GoalSettings, SRCard } from '../types/index';
 
 interface AppContextValue {
   hist: TestResult[];
   prof: string[];
   st: Settings;
+  srCards: SRCard[];
   syncError: string | null;
   showOnboarding: boolean;
   showAuthPrompt: boolean;
@@ -18,6 +20,8 @@ interface AppContextValue {
   resetProfile: () => void;
   finishOnboarding: () => void;
   finishAuthPrompt: () => void;
+  addSrFromResult: (result: TestResult) => void;
+  setSrCards: React.Dispatch<React.SetStateAction<SRCard[]>>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -27,6 +31,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [hist, setHist] = useState<TestResult[]>(() => loadData()?.hist || []);
   const [prof, setProf] = useState<string[]>(() => loadData()?.prof || []);
   const [st, setSt] = useState<Settings>(() => loadData()?.st || { exp: true, tmr: true, shf: true, theme: 'dark' });
+  const [srCards, setSrCards] = useState<SRCard[]>(() => loadData()?.srCards || []);
   const [showOnboarding, setShowOnboarding] = useState(() => {
     const data = loadData();
     if (data?.hist?.length && data.hist.length > 0 || data?.prof?.length && data.prof.length > 0) return false;
@@ -39,12 +44,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
-  const debouncedCloudSave = useCallback((userId: string, _data: { hist: TestResult[]; prof: string[]; st: Settings }) => {
+  const debouncedCloudSave = useCallback((userId: string, _data: { hist: TestResult[]; prof: string[]; st: Settings; srCards?: SRCard[] }) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       // Read fresh data from localStorage to avoid stale closure
       const fresh = loadData();
-      const data = fresh ? { hist: fresh.hist || [], prof: fresh.prof || [], st: fresh.st || _data.st } : _data;
+      const data = fresh ? { hist: fresh.hist || [], prof: fresh.prof || [], st: fresh.st || _data.st, srCards: fresh.srCards || _data.srCards || [] } : _data;
       const result = await cloudSave(userId, data);
       if (!result.ok) setSyncError(result.error ?? null);
       else setSyncError(null);
@@ -62,11 +67,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
       // Read fresh local data from localStorage (not stale closure values)
       const stored = loadData();
-      const local = { hist: stored?.hist || [], prof: stored?.prof || [], st: stored?.st || { exp: true, tmr: true, shf: true, theme: 'dark' as const } };
+      const local = { hist: stored?.hist || [], prof: stored?.prof || [], st: stored?.st || { exp: true, tmr: true, shf: true, theme: 'dark' as const }, srCards: stored?.srCards || [] };
       const merged = mergeData(local, cloud);
       setHist(merged.hist);
       setProf(merged.prof);
       setSt(merged.st);
+      setSrCards(merged.srCards || []);
       syncedRef.current = true;
       await cloudSave(user.id, merged);
     })();
@@ -79,9 +85,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [st.theme]);
 
   useEffect(() => {
-    saveData({ hist, st, prof, lastLogin: new Date().toISOString() });
-    if (user && syncedRef.current) debouncedCloudSave(user.id, { hist, prof, st });
-  }, [hist, st, prof]); // eslint-disable-line react-hooks/exhaustive-deps
+    saveData({ hist, st, prof, srCards, lastLogin: new Date().toISOString() });
+    if (user && syncedRef.current) debouncedCloudSave(user.id, { hist, prof, st, srCards });
+  }, [hist, st, prof, srCards]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addHist = useCallback((result: TestResult) => {
     setHist(prev => [...prev, result]);
@@ -89,6 +95,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const clearHist = useCallback(() => {
     setHist([]);
+  }, []);
+
+  const addSrFromResult = useCallback((result: TestResult) => {
+    setSrCards(prev => addWrongAnswers(prev, result));
   }, []);
 
   const updSt = useCallback((newSt: Settings) => {
@@ -127,13 +137,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AppContextValue>(
     () => ({
-      hist, prof, st, syncError,
+      hist, prof, st, srCards, syncError,
       showOnboarding, showAuthPrompt,
       addHist, clearHist, updSt,
       confirmProfile, resetProfile,
       finishOnboarding, finishAuthPrompt,
+      addSrFromResult, setSrCards,
     }),
-    [hist, prof, st, syncError, showOnboarding, showAuthPrompt, addHist, clearHist, updSt, confirmProfile, resetProfile, finishOnboarding, finishAuthPrompt],
+    [hist, prof, st, srCards, syncError, showOnboarding, showAuthPrompt, addHist, clearHist, updSt, confirmProfile, resetProfile, finishOnboarding, finishAuthPrompt, addSrFromResult],
   );
 
   return (

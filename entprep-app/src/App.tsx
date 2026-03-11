@@ -30,7 +30,7 @@ import AuthPrompt from './components/AuthPrompt';
 import PushPrompt from './components/PushPrompt';
 import { supabase } from './config/supabase';
 import { useAuth } from './contexts/AuthContext';
-import type { TestResult } from './types';
+import type { TestResult, SRCard } from './types';
 
 const submitLeaderboard = async (result: TestResult) => {
   if (!supabase || result.type === 'fullent') return;
@@ -54,6 +54,7 @@ const Admin = React.lazy(() => import('./components/Admin'));
 const Leaderboard = React.lazy(() => import('./components/Leaderboard'));
 const Friends = React.lazy(() => import('./components/Friends'));
 const Duel = React.lazy(() => import('./components/Duel'));
+const ReviewSession = React.lazy(() => import('./components/ReviewSession'));
 
 interface NavItem {
   id: string;
@@ -70,7 +71,7 @@ const NAV_ITEMS: NavItem[] = [
 
 function AppContent() {
   const { screen, curSub, selTopic, customQs, tab, challengeData, paywallReason, nav, goHome, changeTab, setScreen, setTab, setCustomQs, setSelTopic, closePaywall } = useNav();
-  const { hist, prof, st, syncError, showOnboarding, showAuthPrompt, addHist, confirmProfile, resetProfile, finishOnboarding, finishAuthPrompt, updSt, clearHist } = useApp();
+  const { hist, prof, st, srCards, syncError, showOnboarding, showAuthPrompt, addHist, confirmProfile, resetProfile, finishOnboarding, finishAuthPrompt, updSt, clearHist, addSrFromResult, setSrCards } = useApp();
   const toast = useToast();
   const tr = useT();
   const bp = useBreakpoint();
@@ -99,11 +100,29 @@ function AppContent() {
   }, [syncError]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const needProfile = prof.length === 0 && screen !== SCREENS.PROFILE;
-  const showNav = !needProfile && screen !== SCREENS.TEST && screen !== SCREENS.FULL_ENT && screen !== SCREENS.PROFILE && screen !== SCREENS.SUBJECT && screen !== SCREENS.ERROR_REVIEW && screen !== SCREENS.ADMIN && screen !== SCREENS.CHALLENGE && screen !== SCREENS.LEADERBOARD && screen !== SCREENS.FRIENDS && screen !== SCREENS.DUEL && !showOnboarding && !showAuthPrompt;
+  const showNav = !needProfile && screen !== SCREENS.TEST && screen !== SCREENS.FULL_ENT && screen !== SCREENS.PROFILE && screen !== SCREENS.SUBJECT && screen !== SCREENS.ERROR_REVIEW && screen !== SCREENS.ADMIN && screen !== SCREENS.CHALLENGE && screen !== SCREENS.LEADERBOARD && screen !== SCREENS.FRIENDS && screen !== SCREENS.DUEL && screen !== SCREENS.REVIEW && !showOnboarding && !showAuthPrompt;
 
   const { user } = useAuth();
-  const handleFinish = (result: TestResult) => { addHist(result); if (user) { submitLeaderboard(result); } goHome(); };
-  const handleConfirmProfile = (sel: string[], goal?: import('./types/index').GoalSettings) => { confirmProfile(sel, goal); goHome(); };
+  const handleFinish = (result: TestResult) => { addHist(result); addSrFromResult(result); if (user) { submitLeaderboard(result); } goHome(); };
+  const handleReviewFinish = (updated: SRCard[]) => {
+    setSrCards(prev => {
+      const map = new Map(prev.map(c => [`${c.sid}:${c.oi}`, c]));
+      for (const c of updated) map.set(`${c.sid}:${c.oi}`, c);
+      return Array.from(map.values());
+    });
+    goHome();
+  };
+  const handleConfirmProfile = (sel: string[], goal?: import('./types/index').GoalSettings) => {
+    const isFirstTime = hist.length === 0;
+    confirmProfile(sel, goal);
+    if (isFirstTime) {
+      // First-time users: auto-navigate to a short reading test
+      nav('test', 'reading');
+      setTimeout(() => toast.success((tr.onboarding as Record<string, string>).tryFirst || 'Попробуй свой первый тест!'), 500);
+    } else {
+      goHome();
+    }
+  };
   const handleResetProfile = () => { resetProfile(); setScreen(SCREENS.PROFILE); setTab(SCREENS.HOME); };
 
   if (showOnboarding) return (
@@ -177,6 +196,11 @@ function AppContent() {
               <Duel />
             </ErrorBoundary>
           )}
+          {!needProfile && screen === SCREENS.REVIEW && (
+            <ErrorBoundary key="review" title="Ошибка повторения" message="Не удалось загрузить повторение." onRecover={goHome}>
+              <ReviewSession cards={srCards} onFinish={handleReviewFinish} />
+            </ErrorBoundary>
+          )}
         </Suspense>
         {!needProfile && screen === SCREENS.ADAPTIVE && (
           <ErrorBoundary key="adaptive" title="Ошибка анализа" message="Не удалось загрузить анализ." onRecover={() => changeTab(SCREENS.HOME)}>
@@ -202,7 +226,6 @@ function AppContent() {
       <div style={{ padding: "0 20px 24px", fontSize: 15, fontWeight: 800, fontFamily: "'Unbounded',sans-serif" }}>
         <span style={{ color: COLORS.accent }}>ENT</span>
         <span style={{ color: COLORS.teal }}>prep</span>
-        <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6 }}>v5</span>
       </div>
       {NAV_ITEMS.map(ni => {
         const active = tab === ni.id;
@@ -245,7 +268,7 @@ function AppContent() {
               <div style={{ fontSize: 15, fontWeight: 800, fontFamily: "'Unbounded',sans-serif" }}>
                 <span style={{ color: COLORS.accent }}>ENT</span>
                 <span style={{ color: COLORS.teal }}>prep</span>
-                <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6 }}>v5 • {totalQ}q</span>
+                <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6 }}>{totalQ}q</span>
               </div>
             </header>
             {mainContent}
@@ -257,7 +280,7 @@ function AppContent() {
             <div style={{ fontSize: 15, fontWeight: 800, fontFamily: "'Unbounded',sans-serif" }}>
               <span style={{ color: COLORS.accent }}>ENT</span>
               <span style={{ color: COLORS.teal }}>prep</span>
-              <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6 }}>v5 • {totalQ}q</span>
+              <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6 }}>{totalQ}q</span>
             </div>
           </header>
           {mainContent}

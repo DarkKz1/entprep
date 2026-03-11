@@ -1,3 +1,15 @@
+// ── Spaced Repetition ─────────────────────────────────────────────────────
+
+export interface SRCard {
+  sid: string;        // subject ID
+  oi: number;         // question original index in pool
+  interval: number;   // days until next review (0 = new, 1, 3, 7, 14, 30...)
+  ease: number;       // ease factor (default 2.5, min 1.3)
+  due: string;        // ISO date string "2026-03-15" when review is due
+  reps: number;       // consecutive correct answers
+  lapses: number;     // total times forgotten
+}
+
 // ── Question & Data Types ──────────────────────────────────────────────────
 
 export type QuestionType = 'single' | 'multiple' | 'matching';
@@ -95,12 +107,13 @@ export interface UserData {
   prof: string[];
   hist: TestResult[];
   st: Settings;
+  srCards?: SRCard[];   // spaced repetition cards
   lastLogin?: string;
   is_premium?: boolean;
   premium_until?: string; // ISO date
 }
 
-export type PaywallReason = 'daily_limit' | 'fullent' | 'ai' | null;
+export type PaywallReason = 'daily_limit' | 'fullent' | 'ai' | 'upgrade' | null;
 
 // ── Subject Configuration ──────────────────────────────────────────────────
 
@@ -199,7 +212,7 @@ export type ScreenId =
   | 'home' | 'profile' | 'topics' | 'test'
   | 'fullent' | 'calc' | 'prog' | 'set'
   | 'adaptive' | 'errors' | 'admin' | 'challenge'
-  | 'leaderboard' | 'friends' | 'duel';
+  | 'leaderboard' | 'friends' | 'duel' | 'review';
 
 // ── Navigation ─────────────────────────────────────────────────────────────
 
