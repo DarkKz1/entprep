@@ -17,7 +17,7 @@ import { formatTimeHMS } from '../utils/formatters';
 import TestSkeleton from './ui/TestSkeleton';
 import BackButton from './ui/BackButton';
 import ProgressBar from './ui/ProgressBar';
-import { GraduationCap, AlertTriangle, Share2, Check, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Lightbulb, Grid3X3, Play, Flag, Pause, BookOpen, Crown } from 'lucide-react';
+import { GraduationCap, AlertTriangle, Share2, Check, X, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Lightbulb, Grid3X3, Play, Flag, Pause, BookOpen, Crown, WifiOff } from 'lucide-react';
 import ShareModal from './ShareModal';
 import ReportSheet from './ui/ReportSheet';
 import { supabase } from '../config/supabase';
@@ -29,6 +29,7 @@ import { getSingleCorrect, getQType } from '../types';
 import { calcTestXP } from '../utils/xpHelpers';
 import ScoreRing from './ui/ScoreRing';
 import { useT } from '../locales';
+import { canUseFreeFullEnt, useFreeFullEnt } from '../utils/aiLimits';
 
 interface FullENTProps {
   finish: (result: TestResult) => void;
@@ -94,16 +95,27 @@ export default function FullENT({ finish }: FullENTProps) {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportComment, setReportComment] = useState('');
   const [paused, setPaused] = useState(false);
+  const [offline, setOffline] = useState(false);
   const [passageOpen, setPassageOpen] = useState(true);
   // Reset passage to open when navigating to a new question
   useEffect(() => { setPassageOpen(true); }, [curSec, curQ]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (phase !== "test" || paused) { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } return; }
+    if (phase !== "test" || paused || offline) { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } return; }
     timerRef.current = setInterval(() => setTimeLeft(p => { if (p <= 1) { clearInterval(timerRef.current!); setPhase("results"); return 0; } return p - 1; }), 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [phase, paused]);
+  }, [phase, paused, offline]);
+
+  // Pause timer when offline
+  useEffect(() => {
+    if (phase !== "test") return;
+    const goOffline = () => { setOffline(true); toast.warning((t.test as Record<string, string>).connectionLost || 'Соединение потеряно'); };
+    const goOnline = () => { setOffline(false); toast.success((t.test as Record<string, string>).connectionRestored || 'Соединение восстановлено'); };
+    window.addEventListener('offline', goOffline);
+    window.addEventListener('online', goOnline);
+    return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
+  }, [phase, toast, t.test]);
 
   const sec = sections?.[curSec];
   const q = sec?.qs[curQ];
@@ -179,7 +191,33 @@ export default function FullENT({ finish }: FullENTProps) {
 
   const openReport = (key: string) => { setReportComment(''); setReportIdx(key); };
 
-  if (sectionsLoading || !sections) return <TestSkeleton color={COLORS.teal} />;
+  if (sectionsLoading || !sections) {
+    const shimmerStyle: React.CSSProperties = {
+      background: 'linear-gradient(90deg, var(--skeleton-bg) 25%, var(--border-light) 50%, var(--skeleton-bg) 75%)',
+      backgroundSize: '200% 100%',
+      animation: 'shimmer 1.5s ease-in-out infinite',
+    };
+    return (
+      <div style={{ padding: `0 var(--content-padding) ${isDesktop ? 40 : 100}px` }}>
+        {/* Hero skeleton */}
+        <div style={{ ...shimmerStyle, borderRadius: 22, height: 140, marginBottom: 20 }} />
+        {/* Section card skeletons */}
+        <div style={{ display: 'grid', gridTemplateColumns: bp === 'mobile' ? '1fr' : 'repeat(2, 1fr)', gap: 6, marginBottom: 18 }}>
+          {[0, 1, 2, 3, 4].map(i => (
+            <div key={i} style={{ ...CARD_COMPACT, padding: '14px', display: 'flex', alignItems: 'center' }}>
+              <div style={{ ...shimmerStyle, width: 40, height: 40, borderRadius: 11, flexShrink: 0, animationDelay: `${i * 0.08}s` }} />
+              <div style={{ marginLeft: 11, flex: 1 }}>
+                <div style={{ ...shimmerStyle, height: 13, width: '70%', borderRadius: 6, marginBottom: 6, animationDelay: `${0.05 + i * 0.08}s` }} />
+                <div style={{ ...shimmerStyle, height: 10, width: '50%', borderRadius: 5, animationDelay: `${0.1 + i * 0.08}s` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Start button skeleton */}
+        <div style={{ ...shimmerStyle, height: 50, borderRadius: 14 }} />
+      </div>
+    );
+  }
 
   // ===== INTRO =====
   if (phase === "intro") return (
@@ -210,8 +248,12 @@ export default function FullENT({ finish }: FullENTProps) {
         </div>
         <div style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.7 }}>{t.fullent.importantDesc}</div>
       </div>
-      <button onClick={() => isPremium ? setPhase("test") : openPaywall('fullent')} style={{ width: "100%", padding: "16px", background: isPremium ? COLORS.teal : 'var(--bg-subtle-2)', color: isPremium ? "#fff" : 'var(--text-muted)', border: isPremium ? "none" : '1px solid var(--border)', borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: isPremium ? "0 4px 24px rgba(26,154,140,0.25)" : 'none', display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-        {isPremium ? <Play size={18} /> : <Crown size={18} />}{isPremium ? t.fullent.startEnt : t.paywall.getPremium}
+      <button onClick={() => {
+        if (isPremium) { setPhase("test"); return; }
+        if (canUseFreeFullEnt()) { useFreeFullEnt(); setPhase("test"); return; }
+        openPaywall('fullent');
+      }} style={{ width: "100%", padding: "16px", background: (isPremium || canUseFreeFullEnt()) ? COLORS.teal : 'var(--bg-subtle-2)', color: (isPremium || canUseFreeFullEnt()) ? "#fff" : 'var(--text-muted)', border: (isPremium || canUseFreeFullEnt()) ? "none" : '1px solid var(--border)', borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", boxShadow: (isPremium || canUseFreeFullEnt()) ? "0 4px 24px rgba(26,154,140,0.25)" : 'none', display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+        {isPremium ? <Play size={18} /> : canUseFreeFullEnt() ? <Play size={18} /> : <Crown size={18} />}{isPremium ? t.fullent.startEnt : canUseFreeFullEnt() ? t.fullent.startEnt : t.paywall.getPremium}
       </button>
     </div>
   );
@@ -331,7 +373,7 @@ export default function FullENT({ finish }: FullENTProps) {
         </button>
         <div style={{ ...CARD_COMPACT, background: timeLeft < 600 ? "rgba(239,68,68,0.12)" : "var(--bg-card)", border: `1px solid ${timeLeft < 600 ? "rgba(239,68,68,0.25)" : "var(--border)"}`, padding: "7px 11px", fontFamily: "'JetBrains Mono',monospace", fontSize: 13, fontWeight: 700, color: timeLeft < 600 ? COLORS.red : "var(--text)" }}>{fm(timeLeft)}</div>
       </div>
-      {paused && <div style={{ ...CARD, background: "linear-gradient(135deg,rgba(26,26,50,0.95),rgba(22,33,62,0.95))", borderRadius: 18, padding: "48px 20px", textAlign: "center", marginBottom: 16, animation: "slideUp 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+      {paused && !offline && <div style={{ ...CARD, background: "linear-gradient(135deg,rgba(26,26,50,0.95),rgba(22,33,62,0.95))", borderRadius: 18, padding: "48px 20px", textAlign: "center", marginBottom: 16, animation: "slideUp 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
         <Pause size={40} color={COLORS.yellow} style={{ marginBottom: 12 }} />
         <div style={{ fontSize: 18, fontWeight: 700, color: COLORS.yellow, marginBottom: 8 }}>{t.fullent.paused}</div>
         <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 16 }}>{t.fullent.pauseDesc}</div>
@@ -340,7 +382,13 @@ export default function FullENT({ finish }: FullENTProps) {
           <Play size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />{t.fullent.resume}
         </button>
       </div>}
-      {!paused && <><div style={{ display: "flex", gap: 4, marginBottom: 12, overflowX: "auto" }}>
+      {offline && <div style={{ ...CARD, background: "linear-gradient(135deg,rgba(26,26,50,0.95),rgba(22,33,62,0.95))", borderRadius: 18, padding: "48px 20px", textAlign: "center", marginBottom: 16, animation: "slideUp 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+        <WifiOff size={40} color={COLORS.red} style={{ marginBottom: 12 }} />
+        <div style={{ fontSize: 18, fontWeight: 700, color: COLORS.red, marginBottom: 8 }}>{(t.test as Record<string, string>).connectionLost || 'Соединение потеряно'}</div>
+        <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 16 }}>{(t.test as Record<string, string>).timerPaused || 'Таймер на паузе. Ваш прогресс сохранён.'}</div>
+        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t.fullent.pauseStats} {totalAnswered}/120 {t.fullent.pauseRemaining} {fm(timeLeft)}</div>
+      </div>}
+      {!paused && !offline && <><div style={{ display: "flex", gap: 4, marginBottom: 12, overflowX: "auto" }}>
         {sections.map((s, i) => { const sa = answers[i] || {}; const cnt = Object.keys(sa).length; const active = i === curSec; return (
           <button key={i} onClick={() => goSec(i)} style={{ display: "flex", flexDirection: "column", alignItems: "center", background: active ? "rgba(26,154,140,0.12)" : "var(--bg-card)", border: active ? "1px solid rgba(26,154,140,0.3)" : "1px solid var(--border)", borderRadius: 10, padding: "7px 9px", cursor: "pointer", minWidth: 56, flexShrink: 0 }}>
             <span style={{ fontSize: 15 }}>{s.icon}</span>

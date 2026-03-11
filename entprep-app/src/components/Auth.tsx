@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { uploadAvatar } from '../utils/avatarHelpers';
 import { useToast } from '../contexts/ToastContext';
 import { useT } from '../locales';
+import { Capacitor } from '@capacitor/core';
 import type { AuthUser } from '../types/index';
 
 interface AuthProps {
@@ -23,10 +24,23 @@ export default function Auth({ user, onSignOut }: AuthProps) {
   if (!supabase) return null;
 
   const signInWith = async (provider: 'google' | 'apple') => {
-    await supabase!.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: 'https://entprep.netlify.app' }
-    });
+    if (Capacitor.isNativePlatform()) {
+      const { data, error } = await supabase!.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: 'https://entprep.netlify.app/auth-callback.html',
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error || !data.url) return;
+      const { Browser } = await import('@capacitor/browser');
+      await Browser.open({ url: data.url, presentationStyle: 'popover' });
+    } else {
+      await supabase!.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin },
+      });
+    }
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,17 +70,17 @@ export default function Auth({ user, onSignOut }: AuthProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 12 }}>
           <div
             onClick={() => !uploading && fileRef.current?.click()}
-            style={{ position: 'relative', width: 36, height: 36, cursor: 'pointer', flexShrink: 0 }}
+            style={{ position: 'relative', width: 44, height: 44, cursor: 'pointer', flexShrink: 0 }}
           >
             {avatar ? (
-              <img src={avatar} alt={fullName || 'Avatar'} style={{ width: 36, height: 36, borderRadius: 18, border: `2px solid ${COLORS.accent}`, objectFit: 'cover' }} />
+              <img src={avatar} alt={fullName || 'Avatar'} style={{ width: 44, height: 44, borderRadius: 22, border: `2px solid ${COLORS.accent}`, objectFit: 'cover' }} />
             ) : (
-              <div style={{ width: 36, height: 36, borderRadius: 18, border: `2px solid ${COLORS.accent}`, background: `linear-gradient(135deg,${COLORS.accent},#e55a2b)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 22, border: `2px solid ${COLORS.accent}`, background: `linear-gradient(135deg,${COLORS.accent},#e55a2b)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>
                 {initials}
               </div>
             )}
             {uploading ? (
-              <div style={{ position: 'absolute', inset: 0, borderRadius: 18, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', inset: 0, borderRadius: 22, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Loader2 size={16} color="#fff" style={{ animation: 'spin 1s linear infinite' }} />
               </div>
             ) : (

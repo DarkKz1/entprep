@@ -171,7 +171,7 @@ export async function findUserByEmail(email) {
 
 export async function activatePremium({ userId, userMeta, plan, kaspiTxId }) {
   const premiumUntil = calcPremiumUntil(plan);
-  const amount = PLANS[plan]?.amount || (plan === "monthly" ? 1990 : 4990);
+  const amount = PLANS[plan]?.amount || (plan === "monthly" ? 1990 : 9990);
 
   // Update user_metadata via Supabase Auth Admin API
   const updateRes = await fetch(`${SB_URL_SHARED}/auth/v1/admin/users/${userId}`, {

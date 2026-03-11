@@ -3,6 +3,7 @@ import { Cloud, Swords, Trophy, Flame } from 'lucide-react';
 import { supabase } from '../config/supabase';
 import { CARD_HERO, TYPE, COLORS } from '../constants/styles';
 import { useT } from '../locales';
+import { Capacitor } from '@capacitor/core';
 import type { LucideIcon } from 'lucide-react';
 
 interface BenefitConfig {
@@ -36,10 +37,23 @@ export default function AuthPrompt({ onFinish }: AuthPromptProps) {
     if (!supabase) return;
     setLoading(provider);
     try {
-      await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: window.location.origin },
-      });
+      if (Capacitor.isNativePlatform()) {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: 'https://entprep.netlify.app/auth-callback.html',
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error || !data.url) { setLoading(null); return; }
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url: data.url, presentationStyle: 'popover' });
+      } else {
+        await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo: window.location.origin },
+        });
+      }
     } catch {
       setLoading(null);
     }

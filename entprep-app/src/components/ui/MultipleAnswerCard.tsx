@@ -66,7 +66,7 @@ export default function MultipleAnswerCard({
             fontWeight: 700, fontSize: 12,
             color: result.correct ? COLORS.green : result.partial ? COLORS.yellow : COLORS.red,
           }}>
-            {result.pts}/{result.maxPts} б.
+            {result.pts}/{result.maxPts} {t.test.pointsShort}
           </span>
         )}
       </div>

@@ -111,6 +111,7 @@ def fetch_untranslated(subject, limit=500, offset=0):
 
 def safe_translate(text):
     """Translate with exponential backoff retry on failure."""
+    global translator
     if not text or len(text.strip()) < 2:
         return text
 
@@ -154,7 +155,6 @@ def safe_translate(text):
                     print(f"    Retry in {wait}s: {err_str[:80]}")
                 time.sleep(wait)
                 # Recreate translator instance in case connection is stale
-                global translator
                 translator = GoogleTranslator(source='ru', target='kk')
             else:
                 print(f"    FAILED after {MAX_GT_RETRIES} attempts: {err_str[:80]}")

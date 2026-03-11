@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@capacitor/app": "^8.0.1",
+    "@capacitor/browser": "^8.0.2",
     "@revenuecat/purchases-capacitor": "^12.2.2",
     "@sentry/react": "^10.39.0",
     "@supabase/supabase-js": "^2.95.3",

@@ -178,11 +178,13 @@ export interface ENTConfigType {
 export interface Subtopic {
   id: string;
   name: string;
+  name_kk?: string;
 }
 
 export interface Topic {
   id: string;
   name: string;
+  name_kk?: string;
   icon: string;
   ranges: [number, number][];
   subtopics?: Subtopic[];
@@ -266,6 +268,7 @@ export interface WeaknessAnalysis {
 export interface TopicStats {
   id: string;
   name: string;
+  name_kk?: string;
   icon: string;
   total: number;
   correct: number;

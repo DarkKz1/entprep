@@ -7,6 +7,7 @@ interface AIUsage {
   explainCount: number;
   explainDate: string; // YYYY-MM-DD
   planGenerated: boolean;
+  freeFullEntUsed?: boolean;
 }
 
 function today(): string {
@@ -57,6 +58,20 @@ export function usePlan(): boolean {
   const usage = load();
   if (usage.planGenerated) return false;
   usage.planGenerated = true;
+  save(usage);
+  return true;
+}
+
+// Free users get 1 FullENT simulation
+export function canUseFreeFullEnt(): boolean {
+  const usage = load();
+  return !usage.freeFullEntUsed;
+}
+
+export function useFreeFullEnt(): boolean {
+  const usage = load();
+  if (usage.freeFullEntUsed) return false;
+  usage.freeFullEntUsed = true;
   save(usage);
   return true;
 }

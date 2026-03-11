@@ -1,5 +1,5 @@
 import React from 'react';
-import { CARD_COMPACT, COLORS, scoreColor } from '../constants/styles';
+import { CARD_COMPACT, COLORS, SECTION_LABEL, hoverGlow, scoreColor } from '../constants/styles';
 import { useT } from '../locales';
 import { useNav } from '../contexts/NavigationContext';
 import { Trophy } from 'lucide-react';
@@ -44,8 +44,7 @@ export default function HomeSubjectGrid({ mandatory, profile, hist, poolSizes, b
           display: 'flex',
           alignItems: 'center',
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px ${s.color}18`; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+        {...hoverGlow(s.color)}
       >
         {/* Color strip on left */}
         <div style={{ width: 4, alignSelf: 'stretch', background: s.color, borderRadius: '16px 0 0 16px', flexShrink: 0 }} />
@@ -110,8 +109,7 @@ export default function HomeSubjectGrid({ mandatory, profile, hist, poolSizes, b
           flexDirection: 'column',
           position: 'relative',
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px ${s.color}18`; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none'; }}
+        {...hoverGlow(s.color)}
       >
         {/* Color strip at top */}
         <div style={{ height: 4, background: s.color, borderRadius: '16px 16px 0 0' }} />
@@ -165,13 +163,7 @@ export default function HomeSubjectGrid({ mandatory, profile, hist, poolSizes, b
   return (
     <div style={{ marginBottom: 28 }}>
       {/* Mandatory subjects — full-width strips */}
-      <div style={{
-        fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-        textTransform: 'uppercase' as const, letterSpacing: 1.2,
-        marginBottom: 10,
-      }}>
-        {t.home.mandatory}
-      </div>
+      <div style={SECTION_LABEL}>{t.home.mandatory}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
         {mandatory.map(s => <SubjectStrip key={s.id} s={s} />)}
       </div>
@@ -179,13 +171,7 @@ export default function HomeSubjectGrid({ mandatory, profile, hist, poolSizes, b
       {/* Profile subjects — 2-col grid */}
       {profile.length > 0 && (
         <>
-          <div style={{
-            fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
-            textTransform: 'uppercase' as const, letterSpacing: 1.2,
-            marginBottom: 10,
-          }}>
-            {t.home.profile}
-          </div>
+          <div style={SECTION_LABEL}>{t.home.profile}</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {profile.map(s => <SubjectCell key={s.id} s={s} />)}
           </div>

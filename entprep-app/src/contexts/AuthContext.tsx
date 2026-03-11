@@ -48,9 +48,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const u = (session?.user as AuthUser) ?? null;
+      let u = (session?.user as AuthUser) ?? null;
+      // Fetch fresh user_metadata from server (session JWT may have stale metadata)
+      if (u && event !== 'SIGNED_OUT') {
+        try {
+          const { data } = await supabase!.auth.getUser();
+          if (data.user) u = data.user as AuthUser;
+        } catch { /* use session user as fallback */ }
+      }
       setUser(u);
-      setSentryUser(session?.user?.id ?? null);
+      setSentryUser(u?.id ?? null);
       if (u) {
         refreshProfile();
         // Link RevenueCat user and check entitlements
@@ -74,8 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = useMemo(() => !!user?.email && ADMIN_EMAILS.includes(user.email), [user]);
   const needsNickname = useMemo(() => !!profile && profile.nickname.startsWith('user_'), [profile]);
 
-  // TODO: set to false when RevenueCat is fully configured
-  const FREE_PREMIUM = true as boolean;
+  const FREE_PREMIUM = false as boolean;
   const isPremium = useMemo(() => {
     if (FREE_PREMIUM || isAdmin || nativePremium) return true;
     const meta = user?.user_metadata;

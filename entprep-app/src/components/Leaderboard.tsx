@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { CARD_COMPACT, TYPE, COLORS } from '../constants/styles';
 import { SUBS, ALL_PROFILES } from '../config/questionPools';
 import { SUBJECT_META } from '../config/subjects';
@@ -153,6 +153,78 @@ export default function Leaderboard() {
     return null;
   };
 
+  const LeaderboardRow = useMemo(() => memo(function LeaderboardRow({ entry, rank, isMe }: { entry: AggregatedUser; rank: number; isMe: boolean }) {
+    const medal = medalColor(rank);
+    return (
+      <div
+        style={{
+          ...CARD_COMPACT,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '12px 14px',
+          border: isMe ? `1.5px solid ${COLORS.accent}` : '1px solid var(--border)',
+          background: isMe ? 'rgba(255,107,53,0.06)' : 'var(--bg-card)',
+          animation: `fadeIn 0.3s ease ${Math.min((rank - 1) * 0.03, 0.5)}s both`,
+        }}
+      >
+        {/* Rank badge */}
+        <div style={{
+          width: 32,
+          height: 32,
+          borderRadius: 10,
+          background: medal ? `${medal}20` : 'var(--bg-card)',
+          border: medal ? `1.5px solid ${medal}` : '1px solid var(--border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          {medal ? (
+            <Medal size={16} color={medal} />
+          ) : (
+            <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace", color: 'var(--text-secondary)' }}>{rank}</span>
+          )}
+        </div>
+
+        {/* Avatar */}
+        {entry.avatar_url && (
+          <img
+            src={entry.avatar_url}
+            alt=""
+            style={{ width: 28, height: 28, borderRadius: '50%', marginLeft: 10, flexShrink: 0, objectFit: 'cover' }}
+          />
+        )}
+
+        {/* Name + "You" badge */}
+        <div style={{ marginLeft: entry.avatar_url ? 8 : 12, flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {entry.nickname && !entry.nickname.startsWith('user_') ? (
+              <span style={{ fontFamily: "'JetBrains Mono',monospace" }}>@{entry.nickname}</span>
+            ) : entry.user_name}
+            {isMe && <span style={{ fontSize: 9, fontWeight: 700, color: COLORS.accent, background: 'rgba(255,107,53,0.12)', padding: '1px 5px', borderRadius: 4 }}>{t.you}</span>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+            <Activity size={11} color="var(--text-muted)" />
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>{pluralTests(entry.testCount, t.leaderboard.test1, t.leaderboard.test2, t.leaderboard.test5)}</span>
+          </div>
+        </div>
+
+        {/* Avg score */}
+        <div style={{
+          fontSize: 13,
+          fontWeight: 700,
+          fontFamily: "'JetBrains Mono',monospace",
+          color: entry.avgScore >= 80 ? COLORS.green : entry.avgScore >= 60 ? COLORS.yellow : COLORS.red,
+          background: entry.avgScore >= 80 ? 'rgba(34,197,94,0.1)' : entry.avgScore >= 60 ? 'rgba(234,179,8,0.1)' : 'rgba(239,68,68,0.1)',
+          padding: '4px 8px',
+          borderRadius: 8,
+        }}>
+          {entry.avgScore}%
+        </div>
+      </div>
+    );
+  }), [t]);
+
   return (
     <div style={{ padding: `0 var(--content-padding) ${bp === 'desktop' ? 40 : 100}px` }}>
       <BackButton onClick={goHome} />
@@ -209,81 +281,9 @@ export default function Leaderboard() {
         )
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {ranked.map((entry, i) => {
-            const rank = i + 1;
-            const medal = medalColor(rank);
-            const isMe = user && entry.user_id === user.id;
-
-            return (
-              <div
-                key={entry.user_id}
-                style={{
-                  ...CARD_COMPACT,
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '12px 14px',
-                  border: isMe ? `1.5px solid ${COLORS.accent}` : '1px solid var(--border)',
-                  background: isMe ? 'rgba(255,107,53,0.06)' : 'var(--bg-card)',
-                  animation: `fadeIn 0.3s ease ${Math.min(i * 0.03, 0.5)}s both`,
-                }}
-              >
-                {/* Rank badge */}
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  background: medal ? `${medal}20` : 'var(--bg-card)',
-                  border: medal ? `1.5px solid ${medal}` : '1px solid var(--border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  {medal ? (
-                    <Medal size={16} color={medal} />
-                  ) : (
-                    <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace", color: 'var(--text-secondary)' }}>{rank}</span>
-                  )}
-                </div>
-
-                {/* Avatar */}
-                {entry.avatar_url && (
-                  <img
-                    src={entry.avatar_url}
-                    alt=""
-                    style={{ width: 28, height: 28, borderRadius: '50%', marginLeft: 10, flexShrink: 0, objectFit: 'cover' }}
-                  />
-                )}
-
-                {/* Name + "You" badge */}
-                <div style={{ marginLeft: entry.avatar_url ? 8 : 12, flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {entry.nickname && !entry.nickname.startsWith('user_') ? (
-                      <span style={{ fontFamily: "'JetBrains Mono',monospace" }}>@{entry.nickname}</span>
-                    ) : entry.user_name}
-                    {isMe && <span style={{ fontSize: 9, fontWeight: 700, color: COLORS.accent, background: 'rgba(255,107,53,0.12)', padding: '1px 5px', borderRadius: 4 }}>{t.you}</span>}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                    <Activity size={11} color="var(--text-muted)" />
-                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)' }}>{pluralTests(entry.testCount, t.leaderboard.test1, t.leaderboard.test2, t.leaderboard.test5)}</span>
-                  </div>
-                </div>
-
-                {/* Avg score */}
-                <div style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  fontFamily: "'JetBrains Mono',monospace",
-                  color: entry.avgScore >= 80 ? COLORS.green : entry.avgScore >= 60 ? COLORS.yellow : COLORS.red,
-                  background: entry.avgScore >= 80 ? 'rgba(34,197,94,0.1)' : entry.avgScore >= 60 ? 'rgba(234,179,8,0.1)' : 'rgba(239,68,68,0.1)',
-                  padding: '4px 8px',
-                  borderRadius: 8,
-                }}>
-                  {entry.avgScore}%
-                </div>
-              </div>
-            );
-          })}
+          {ranked.map((entry, i) => (
+            <LeaderboardRow key={entry.user_id} entry={entry} rank={i + 1} isMe={!!user && entry.user_id === user.id} />
+          ))}
         </div>
       )}
     </div>

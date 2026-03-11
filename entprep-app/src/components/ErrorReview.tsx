@@ -42,7 +42,7 @@ interface GroupedSubject {
 export default function ErrorReview() {
   const bp = useBreakpoint(); const isDesktop = bp === 'desktop';
   const { hist, st } = useApp();
-  const { nav, setScreen, setTab } = useNav();
+  const { navToErrorTest, setScreen, setTab } = useNav();
   const t = useT();
   const wrongs = useMemo(() => getWrongQuestions(hist), [hist]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -100,7 +100,7 @@ export default function ErrorReview() {
       }
     }
     const shuffled = questions.map(q => shuffleOptions(q));
-    nav("errors_test", shuffled as unknown as string);
+    navToErrorTest(shuffled);
   };
 
   if (totalErrors === 0) {

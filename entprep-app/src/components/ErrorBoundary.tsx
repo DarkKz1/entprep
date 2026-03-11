@@ -70,7 +70,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
           {this.state.error && (
             <div style={{ ...CARD_COMPACT, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.18)', padding: '10px 14px', marginBottom: 20, maxWidth: 340 }}>
               <div style={{ fontSize: 10, color: COLORS.red, fontFamily: "'JetBrains Mono',monospace", wordBreak: 'break-all' }}>
-                {this.state.error.message}
+                {String(this.state.error?.message || this.state.error)}
               </div>
             </div>
           )}

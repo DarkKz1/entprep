@@ -5,7 +5,7 @@ import type { Question, Passage } from '../types/index';
 const CACHE_KEY = 'entprep_qcache';
 const COUNTS_KEY = 'entprep_qcounts';
 const DATA_VERSION_KEY = 'entprep_qversion';
-const DATA_VERSION = 15; // bump this to invalidate localStorage question cache
+const DATA_VERSION = 16; // bump this to invalidate localStorage question cache
 
 // Memory caches
 const memCache: Record<string, Question[]> = {};
@@ -112,21 +112,31 @@ function getDefaultCounts(): Record<string, number> {
 // --- Supabase fetch ---
 const pending: Partial<Record<string, Promise<Question[]>>> = {};
 
-async function fetchFromSupabase(sid: string): Promise<SupabaseRow[] | null> {
+async function fetchFromSupabase(sid: string): Promise<{ rows: SupabaseRow[]; complete: boolean } | null> {
   if (!supabase) return null;
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-    const { data, error } = await supabase
-      .from('questions')
-      .select('idx,topic,subtopic,q,o,c,e,passage_group,passage_title,passage_text,type,correct_indices,pairs,difficulty,block,q_kk,o_kk,e_kk,pairs_kk,passage_title_kk,passage_text_kk')
-      .eq('subject', sid)
-      .order('idx', { ascending: true })
-      .limit(5000)
-      .abortSignal(controller.signal);
-    clearTimeout(timeout);
-    if (error || !data || data.length === 0) return null;
-    return data as SupabaseRow[];
+    const PAGE = 1000;
+    const allRows: SupabaseRow[] = [];
+    const cols = 'idx,topic,subtopic,q,o,c,e,passage_group,passage_title,passage_text,type,correct_indices,pairs,difficulty,block,q_kk,o_kk,e_kk,pairs_kk,passage_title_kk,passage_text_kk';
+    let complete = false;
+
+    for (let offset = 0; ; offset += PAGE) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+      const { data, error } = await supabase
+        .from('questions')
+        .select(cols)
+        .eq('subject', sid)
+        .order('idx', { ascending: true })
+        .range(offset, offset + PAGE - 1)
+        .abortSignal(controller.signal);
+      clearTimeout(timeout);
+      if (error || !data) break;
+      allRows.push(...(data as SupabaseRow[]));
+      if (data.length < PAGE) { complete = true; break; } // last page
+    }
+
+    return allRows.length > 0 ? { rows: allRows, complete } : null;
   } catch {
     return null;
   }
@@ -214,8 +224,9 @@ async function getPool(sid: string, lang?: Lang): Promise<Question[]> {
   pending[sid] = (async () => {
     try {
       // 2. Supabase
-      const rows = await fetchFromSupabase(sid);
-      if (rows && rows.length > 0) {
+      const result = await fetchFromSupabase(sid);
+      if (result && result.rows.length > 0) {
+        const rows = result.rows;
         if (sid === 'reading') {
           const passages = buildPassagesFromRows(rows);
           passageCache.data = passages;
@@ -228,10 +239,14 @@ async function getPool(sid: string, lang?: Lang): Promise<Question[]> {
         } else {
           memCache[sid] = rows.map((r, i) => deepFreezeQuestion({ ...supabaseRowToQuestion(r), _oi: i }));
         }
-        const counts = loadCounts();
-        counts[sid] = sid === 'reading' ? memCache[sid].length : rows.length;
-        saveCounts(counts);
-        lsWrite(sid, rows);
+        if (result.complete) {
+          // Only persist count + cache when we got ALL rows — partial fetches
+          // would corrupt the cached count (e.g. 1000 instead of 2100)
+          const counts = loadCounts();
+          counts[sid] = sid === 'reading' ? memCache[sid].length : rows.length;
+          saveCounts(counts);
+          lsWrite(sid, rows);
+        }
         return memCache[sid];
       }
 

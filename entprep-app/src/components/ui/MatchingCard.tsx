@@ -90,7 +90,7 @@ export default function MatchingCard({
             fontWeight: 700, fontSize: 12,
             color: isAllCorrect ? COLORS.green : COLORS.red,
           }}>
-            {isAllCorrect ? '2/2' : '0/2'} б.
+            {isAllCorrect ? '2/2' : '0/2'} {t.test.pointsShort}
           </span>
         ) : pairs.length > 0 && (
           <span style={{

@@ -75,8 +75,10 @@ describe('ToastContext', () => {
     renderWithToast();
     fireEvent.click(screen.getByText('error'));
     expect(screen.getByText('Error msg')).toBeInTheDocument();
-    // Click dismiss (✕)
-    fireEvent.click(screen.getByText('✕'));
+    // Click dismiss (X icon button — last button in the toast)
+    const alert = screen.getByRole('alert');
+    const dismissBtn = alert.querySelectorAll('button');
+    fireEvent.click(dismissBtn[dismissBtn.length - 1]);
     expect(screen.queryByText('Error msg')).toBeNull();
   });
 

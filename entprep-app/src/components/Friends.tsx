@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { CARD_COMPACT, TYPE, COLORS } from '../constants/styles';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useNav } from '../contexts/NavigationContext';
@@ -125,7 +125,7 @@ export default function Friends() {
     }
   };
 
-  const handleRemove = async (friendshipId: number) => {
+  const handleRemove = useCallback(async (friendshipId: number) => {
     try {
       await removeFriend(friendshipId);
       toast.info(t.friends.friendRemoved);
@@ -133,7 +133,9 @@ export default function Friends() {
     } catch {
       toast.error(t.error);
     }
-  };
+  }, [toast, t, loadData]);
+
+  const handleDuel = useCallback(() => nav('duel'), [nav]);
 
   const handleSetNickname = async () => {
     const nick = nicknameInput.trim();
@@ -409,7 +411,7 @@ export default function Friends() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {friends.map((f, i) => (
-              <FriendCard key={f.id} friendship={f} index={i} onRemove={handleRemove} onDuel={() => nav('duel')} />
+              <FriendCard key={f.id} friendship={f} index={i} onRemove={handleRemove} onDuel={handleDuel} />
             ))}
           </div>
         )
@@ -471,7 +473,7 @@ function LevelBadge({ level }: { level: number }) {
   );
 }
 
-function FriendCard({ friendship, index, onRemove, onDuel }: { friendship: Friendship; index: number; onRemove: (id: number) => void; onDuel: () => void }) {
+const FriendCard = memo(function FriendCard({ friendship, index, onRemove, onDuel }: { friendship: Friendship; index: number; onRemove: (id: number) => void; onDuel: () => void }) {
   const t = useT();
   const [confirmRemove, setConfirmRemove] = useState(false);
   const p = friendship.profile;
@@ -516,4 +518,4 @@ function FriendCard({ friendship, index, onRemove, onDuel }: { friendship: Frien
       </div>
     </div>
   );
-}
+});

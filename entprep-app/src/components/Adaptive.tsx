@@ -68,6 +68,7 @@ export default function Adaptive() {
   const toast = useToast();
   const bp = useBreakpoint();
   const t = useT();
+  const isKk = st.lang === 'kk';
   const isDesktop = bp === 'desktop';
   const { weak, strong, overall, totalTests } = getRecommendations(hist, prof);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -173,7 +174,7 @@ export default function Adaptive() {
                 <span style={{ fontSize: 15, width: 22, textAlign: "center", flexShrink: 0 }}>{t.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-                    <span style={{ fontSize: 12, color: "var(--text-body)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.name}</span>
+                    <span style={{ fontSize: 12, color: "var(--text-body)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{isKk && t.name_kk ? t.name_kk : t.name}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace", color: t.pct < 0 ? "var(--text-muted)" : scoreColor(t.pct), flexShrink: 0, marginLeft: 6 }}>
                       {t.pct < 0 ? "\u2014" : t.pct + "%"}
                     </span>
@@ -194,7 +195,7 @@ export default function Adaptive() {
                       <div style={{ width: 4, height: 4, borderRadius: 2, background: "var(--text-muted)", flexShrink: 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-                          <span style={{ fontSize: 11, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{st.name}</span>
+                          <span style={{ fontSize: 11, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{isKk && st.name_kk ? st.name_kk : st.name}</span>
                           <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "'JetBrains Mono',monospace", color: st.pct < 0 ? "var(--text-muted)" : scoreColor(st.pct), flexShrink: 0, marginLeft: 4 }}>
                             {st.pct < 0 ? "\u2014" : st.pct + "%"}
                           </span>
@@ -325,8 +326,23 @@ export default function Adaptive() {
         </div>
         {planError && <div style={{ fontSize: 12, color: COLORS.red, marginBottom: 10 }}>{planError}</div>}
         <button onClick={generatePlan} disabled={planLoading} style={{ background: planLoading ? "rgba(26,154,140,0.15)" : `linear-gradient(135deg,${COLORS.teal},${COLORS.tealDark})`, border: "none", borderRadius: 12, padding: "12px 24px", color: "#fff", fontSize: 13, fontWeight: 700, cursor: planLoading ? "wait" : "pointer", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}>
-          {planLoading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> {t.adaptive.generating}</> : <><Sparkles size={16} /> {planIsOld ? t.adaptive.refreshPlan : t.adaptive.createPlan}</>}
+          {planLoading ? <><Loader size={16} style={{ animation: "spin 1s linear infinite" }} /> {t.adaptive.generating}</> : <><Sparkles size={16} />{' '}{planIsOld ? t.adaptive.refreshPlan : t.adaptive.createPlan}</>}
         </button>
+        {planLoading && (() => {
+          const shimmer: React.CSSProperties = {
+            background: 'linear-gradient(90deg, var(--skeleton-bg) 25%, var(--border-light) 50%, var(--skeleton-bg) 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.5s ease-in-out infinite',
+          };
+          return (
+            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+              <div style={{ ...shimmer, height: 48, borderRadius: 10, animationDelay: '0s' }} />
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{ ...shimmer, height: 36, borderRadius: 8, animationDelay: `${0.1 + i * 0.08}s` }} />
+              ))}
+            </div>
+          );
+        })()}
       </div>
     );
   };

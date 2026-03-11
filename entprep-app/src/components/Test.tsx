@@ -12,7 +12,7 @@ import { isNewRecord, completeDailyChallenge, loadDaily } from '../utils/competi
 import TestSkeleton from './ui/TestSkeleton';
 import BackButton from './ui/BackButton';
 import ProgressBar from './ui/ProgressBar';
-import { Lightbulb, Bot, Share2, Check, X, ChevronDown, ChevronUp, Swords, Trophy, Flag } from 'lucide-react';
+import { Lightbulb, Bot, Share2, Check, X, ChevronDown, ChevronUp, Swords, Trophy, Flag, WifiOff } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 import ShareModal from './ShareModal';
 import ReportSheet from './ui/ReportSheet';
@@ -68,6 +68,7 @@ export default function Test({ sid, tid, customQs = null, finish }: TestProps) {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportComment, setReportComment] = useState('');
   const [focused, setFocused] = useState(-1);
+  const [offline, setOffline] = useState(false);
 
   const handleBack = () => {
     if (customQs) { setNavCustomQs(null); setScreen('errors'); }
@@ -76,7 +77,7 @@ export default function Test({ sid, tid, customQs = null, finish }: TestProps) {
   };
 
   useEffect(() => { let cancelled = false; (async () => { const questions = customQs ? customQs.map(q => ({ ...q, o: [...q.o] })) : await getQs(sid, sub.cnt, useShuffle, tid, st.lang); if (cancelled) return; const tot = questions.length; const timerSec = tid ? Math.max(5 * 60, Math.round(baseTime * (tot / sub.cnt))) : baseTime; setQs(questions); setTl(timerSec); setLoading(false); })(); return () => { cancelled = true } }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (loading || !useTmr) return; tr.current = setInterval(() => setTl(p => { if (p <= 1) { clearInterval(tr.current!); autoFinished.current = true; setFin(true); return 0; } return p - 1; }), 1000); return () => { if (tr.current) clearInterval(tr.current); }; }, [loading]);
+  useEffect(() => { if (loading || !useTmr || offline) { if (tr.current) { clearInterval(tr.current); tr.current = null; } return; } tr.current = setInterval(() => setTl(p => { if (p <= 1) { clearInterval(tr.current!); autoFinished.current = true; setFin(true); return 0; } return p - 1; }), 1000); return () => { if (tr.current) clearInterval(tr.current); }; }, [loading, offline]);
   useEffect(() => { if (!fin || !autoFinished.current || !qs) return; autoFinished.current = false; const tot = qs.length; const timerSec = tid ? Math.max(5 * 60, Math.round(baseTime * (tot / sub.cnt))) : baseTime; const cc = qs.filter((q, i) => ans[i] !== undefined && scoreQuestion(q, ans[i]).correct).length; const qd = qs.map((q, i) => ({ oi: q._oi!, ok: ans[i] !== undefined && scoreQuestion(q, ans[i]).correct, tp: q._topic, stp: q._subtopic })); finish({ su: sid, tp: tid || undefined, co: cc, to: tot, sc: tot ? Math.round(cc / tot * 100) : 0, dt: new Date().toLocaleDateString("ru-RU"), tm: timerSec, qd }); }, [fin]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!fin || dailyMarkedRef.current || customQs || !qs) return;
@@ -125,6 +126,16 @@ export default function Test({ sid, tid, customQs = null, finish }: TestProps) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [loading, qs, fin, cur, show, focused]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Pause timer when offline
+  useEffect(() => {
+    if (loading || fin) return;
+    const goOffline = () => { setOffline(true); toast.warning((t.test as Record<string, string>).connectionLost || 'Соединение потеряно'); };
+    const goOnline = () => { setOffline(false); toast.success((t.test as Record<string, string>).connectionRestored || 'Соединение восстановлено'); };
+    window.addEventListener('offline', goOffline);
+    window.addEventListener('online', goOnline);
+    return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
+  }, [loading, fin, toast, t.test]);
 
   if (loading || !qs) return <TestSkeleton color={sub?.color} />;
 
@@ -302,7 +313,12 @@ export default function Test({ sid, tid, customQs = null, finish }: TestProps) {
       </div>
       <ProgressBar value={cur + 1} max={tot} />
     </div>
-    <div key={`qblock-${cur}`}>
+    {offline && <div style={{ ...CARD, background: "linear-gradient(135deg,rgba(26,26,50,0.95),rgba(22,33,62,0.95))", borderRadius: 18, padding: "32px 20px", textAlign: "center", marginBottom: 16, animation: "slideUp 0.3s cubic-bezier(0.16,1,0.3,1)" }}>
+      <WifiOff size={32} color={COLORS.red} style={{ marginBottom: 10 }} />
+      <div style={{ fontSize: 16, fontWeight: 700, color: COLORS.red, marginBottom: 6 }}>{(t.test as Record<string, string>).connectionLost || 'Соединение потеряно'}</div>
+      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{(t.test as Record<string, string>).timerPaused || 'Таймер на паузе. Ваш прогресс сохранён.'}</div>
+    </div>}
+    {!offline && <div key={`qblock-${cur}`}>
     {isR && <div style={{ ...CARD_COMPACT, background: "rgba(26,154,140,0.06)", border: "1px solid rgba(26,154,140,0.18)", padding: "12px 14px", marginBottom: 12 }}>
       <div style={{ fontSize: 11, fontWeight: 600, color: COLORS.teal, marginBottom: 4 }}>{"\uD83D\uDCD6"} {q.pt}</div>
       <div style={{ fontSize: 11, color: "var(--text-light)", lineHeight: 1.7 }}>{q.px}</div>
@@ -356,7 +372,7 @@ export default function Test({ sid, tid, customQs = null, finish }: TestProps) {
       {aiBtn(cur)}
     </div>}
     {show && <button onClick={nxt} style={{ width: "100%", padding: "15px", marginTop: 12, background: `linear-gradient(135deg,${COLORS.accent},${COLORS.accentDark})`, color: "#fff", border: "none", borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: "pointer", animation: "slideUp 0.4s cubic-bezier(0.16,1,0.3,1)", boxShadow: "0 4px 20px rgba(255,107,53,0.25)" }}>{cur < tot - 1 ? t.test.nextQuestion : t.test.finishTest}</button>}
-    </div>
+    </div>}
     <ReportSheet visible={reportIdx !== null} questionText={reportIdx !== null ? qs[reportIdx]?.q : undefined} comment={reportComment} loading={reportLoading} onClose={() => { setReportIdx(null); setReportComment(''); }} onCommentChange={setReportComment} onReport={reason => reportQuestion(reportIdx!, reason)} />
   </div>);
 }

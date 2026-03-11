@@ -47,5 +47,16 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kz.entprep.app</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>kz.entprep.app</string>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { CARD_COMPACT, TYPE, COLORS } from '../constants/styles';
 import { SUBJECT_META } from '../config/subjects';
 import { ALL_PROFILES, SUBS } from '../config/questionPools';
@@ -33,6 +33,20 @@ const ALL_SUBJECTS = [
   ...Object.values(SUBS).map(s => ({ id: s.id, name: s.name, icon: s.icon, color: s.color })),
   ...ALL_PROFILES.map(p => ({ id: p.id, name: p.name, icon: p.icon, color: p.color })),
 ];
+
+const DuelSubjectButton = memo(function DuelSubjectButton({ s, subjectName, onClick }: { s: { id: string; icon: string; color: string }; subjectName: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      ...CARD_COMPACT, display: 'flex', alignItems: 'center',
+      borderLeft: `3px solid ${s.color}`, padding: '13px 14px',
+      cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', width: '100%',
+    }}>
+      <span style={{ fontSize: 20, marginRight: 10 }}>{s.icon}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1 }}>{subjectName}</span>
+      <ChevronRight size={16} color={s.color} />
+    </button>
+  );
+});
 
 export default function Duel() {
   const { goHome } = useNav();
@@ -465,15 +479,7 @@ export default function Duel() {
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>{t.duel.selectSubject}</div>
             <div style={{ display: 'grid', gridTemplateColumns: bp === 'mobile' ? '1fr' : 'repeat(2, 1fr)', gap: 6 }}>
               {ALL_SUBJECTS.map(s => (
-                <button key={s.id} onClick={() => handleCreate(s.id)} style={{
-                  ...CARD_COMPACT, display: 'flex', alignItems: 'center',
-                  borderLeft: `3px solid ${s.color}`, padding: '13px 14px',
-                  cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', width: '100%',
-                }}>
-                  <span style={{ fontSize: 20, marginRight: 10 }}>{s.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1 }}>{(t.subjects as Record<string, string>)[s.id] || s.name}</span>
-                  <ChevronRight size={16} color={s.color} />
-                </button>
+                <DuelSubjectButton key={s.id} s={s} subjectName={(t.subjects as Record<string, string>)[s.id] || s.name} onClick={() => handleCreate(s.id)} />
               ))}
             </div>
           </>
@@ -868,7 +874,7 @@ export default function Duel() {
 
 // ── PlayerAvatar sub-component ───────────────────────────────────────────────
 
-function PlayerAvatar({ profile, size }: { profile: Profile | null; size: number }) {
+const PlayerAvatar = memo(function PlayerAvatar({ profile, size }: { profile: Profile | null; size: number }) {
   if (profile?.avatar_url) {
     return (
       <img
@@ -892,4 +898,4 @@ function PlayerAvatar({ profile, size }: { profile: Profile | null; size: number
       {initials}
     </div>
   );
-}
+});

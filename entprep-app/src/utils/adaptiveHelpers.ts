@@ -128,6 +128,7 @@ function calcTopicStats(subjectId: string, hist: TestResult[]): TopicStats[] | n
   return topics.map(t => ({
     id: t.id,
     name: t.name,
+    name_kk: t.name_kk,
     icon: t.icon,
     total: buckets[t.id].total,
     correct: buckets[t.id].correct,
@@ -246,6 +247,7 @@ function calcSubtopicStats(subjectId: string, sectionId: string, hist: TestResul
   return section.subtopics.map(st => ({
     id: st.id,
     name: st.name,
+    name_kk: st.name_kk,
     icon: '',
     total: buckets[st.id].total,
     correct: buckets[st.id].correct,

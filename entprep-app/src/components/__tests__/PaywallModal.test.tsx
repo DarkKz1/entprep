@@ -24,10 +24,10 @@ vi.mock('../../locales', () => ({
       dailyLimitDesc: 'Вы исчерпали дневной лимит',
       fullentDesc: 'Симуляция ЕНТ доступна в Premium',
       aiDesc: 'AI доступен в Premium',
-      unlimitedAI: 'Безлимитный AI-разбор',
-      aiErrors: 'AI-план подготовки',
-      aiPlan: 'Полная симуляция ЕНТ',
-      fullEntSim: 'Приоритетная поддержка',
+      unlimitedAI: 'Разбери каждую ошибку с ИИ-репетитором',
+      aiErrors: 'Личный план подготовки к ЕНТ',
+      aiPlan: 'Полная симуляция ЕНТ без ограничений',
+      fullEntSim: 'Разбор каждого вопроса с объяснением',
       monthlyPlan: '1 990 ₸/мес',
       yearlyPlan: '4 990 ₸',
       yearlyPlanDesc: 'автопродление раз в год',
@@ -68,14 +68,14 @@ describe('PaywallModal', () => {
 
   it('shows 4 benefit items', () => {
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
-    expect(screen.getByText('Безлимитный AI-разбор')).toBeInTheDocument();
-    expect(screen.getByText('Приоритетная поддержка')).toBeInTheDocument();
+    expect(screen.getByText('Разбери каждую ошибку с ИИ-репетитором')).toBeInTheDocument();
+    expect(screen.getByText('Разбор каждого вопроса с объяснением')).toBeInTheDocument();
   });
 
   it('shows two plan options with fallback prices on web', () => {
     render(<PaywallModal open={true} reason="daily_limit" onClose={() => {}} />);
     expect(screen.getByText('1 990 ₸/мес')).toBeInTheDocument();
-    expect(screen.getByText('4 990 ₸/год')).toBeInTheDocument();
+    expect(screen.getByText('9 990 ₸/год')).toBeInTheDocument();
   });
 
   it('on web: "already paid" button calls onClose', () => {

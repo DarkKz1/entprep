@@ -19,7 +19,8 @@ interface SubjectDetailProps {
 
 export default function SubjectDetail({ sid }: SubjectDetailProps) {
   const { nav, goHome, setCustomQs, setCurSub, setScreen } = useNav();
-  const { hist } = useApp();
+  const { hist, st: settings } = useApp();
+  const isKk = settings.lang === 'kk';
   const t = useT();
   const bp = useBreakpoint();
   const isDesktop = bp === 'desktop';
@@ -160,7 +161,7 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
                     {tp.icon}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{tp.name}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{isKk && tp.name_kk ? tp.name_kk : tp.name}</div>
                     <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                       {cnt} {t.questions}
                       {canExpand && ` • ${subs.length} ${t.subjectDetail.topics}`}
@@ -173,7 +174,7 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
                   <button
                     onClick={e => { e.stopPropagation(); nav("test", sid, tp.id); }}
                     style={{ width: 32, height: 32, borderRadius: 8, background: sub.color + "18", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, marginRight: 6, transition: "background 0.2s" }}
-                    title={tp.name}
+                    title={isKk && tp.name_kk ? tp.name_kk : tp.name}
                   >
                     <Play size={14} color={sub.color} />
                   </button>
@@ -214,7 +215,7 @@ export default function SubjectDetail({ sid }: SubjectDetailProps) {
                       >
                         <div style={{ width: 6, height: 6, borderRadius: 3, background: sub.color + "55", marginRight: 10, flexShrink: 0 }} />
                         <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text)" }}>{st.name}</div>
+                          <div style={{ fontSize: 12, fontWeight: 500, color: "var(--text)" }}>{isKk && st.name_kk ? st.name_kk : st.name}</div>
                           <div style={{ fontSize: 10, color: "var(--text-secondary)" }}>
                             {stCnt > 0 ? `${stCnt} ${t.questions}` : t.subjectDetail.noQuestions}
                             {stLastSc !== null && <span style={{ color: scoreColor(stLastSc), fontWeight: 600 }}> • {stLastSc}%</span>}

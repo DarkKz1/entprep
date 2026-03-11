@@ -105,18 +105,33 @@ export default async function handler(req) {
     if (rl) return rateLimitResponse(rl);
 
     const { subject, score, questionCount } = body;
-    if (!subject || typeof score !== "number" || score < 0 || score > 100) {
-      return Response.json({ error: "Invalid data" }, { status: 400, headers: CORS_HEADERS });
+
+    // Subject whitelist — only valid subject IDs
+    const VALID_SUBJECTS = new Set([
+      "math", "reading", "history", "geography", "english", "math_profile",
+      "physics", "biology", "chemistry", "world_history", "informatics", "law", "literature",
+    ]);
+    if (!subject || !VALID_SUBJECTS.has(subject)) {
+      return Response.json({ error: "Invalid subject" }, { status: 400, headers: CORS_HEADERS });
     }
-    // Basic sanity: score must be integer
-    if (!Number.isInteger(score)) {
+
+    if (typeof score !== "number" || !Number.isInteger(score) || score < 0) {
       return Response.json({ error: "Invalid score" }, { status: 400, headers: CORS_HEADERS });
+    }
+    // Cap score server-side
+    const cappedScore = Math.min(score, 100);
+
+    // Validate questionCount if provided
+    if (questionCount !== undefined) {
+      if (typeof questionCount !== "number" || !Number.isInteger(questionCount) || questionCount < 1 || questionCount > 200) {
+        return Response.json({ error: "Invalid questionCount" }, { status: 400, headers: CORS_HEADERS });
+      }
     }
     // Prevent rapid duplicate submissions (same user+subject+score within 30s)
     try {
       const since = new Date(Date.now() - 30000).toISOString();
       const dupRes = await fetch(
-        `${SB_URL}/rest/v1/leaderboard?user_id=eq.${user.id}&subject=eq.${encodeURIComponent(subject)}&score=eq.${score}&created_at=gte.${since}&limit=1`,
+        `${SB_URL}/rest/v1/leaderboard?user_id=eq.${user.id}&subject=eq.${encodeURIComponent(subject)}&score=eq.${cappedScore}&created_at=gte.${since}&limit=1`,
         { headers: authHeaders }
       );
       if (dupRes.ok) {
@@ -142,7 +157,7 @@ export default async function handler(req) {
       const res = await fetch(`${SB_URL}/rest/v1/leaderboard`, {
         method: "POST",
         headers: { ...authHeaders, "Content-Type": "application/json", Prefer: "return=minimal" },
-        body: JSON.stringify({ subject, user_name: userName, score, user_id: user.id }),
+        body: JSON.stringify({ subject, user_name: userName, score: cappedScore, user_id: user.id }),
       });
       if (!res.ok) {
         const text = await res.text();
